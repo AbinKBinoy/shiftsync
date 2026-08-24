@@ -1,39 +1,38 @@
 # ShiftSync — Next.js Web App
 
-## Project Overview
+## What This Project Is
 
-ShiftSync is a collaborative shift management platform for frontline retail workers. It turns a photo of a printed work schedule into a shared, interactive shift management system where coworkers can view, sync, swap, and communicate about their shifts.
+The main web application for ShiftSync — a collaborative shift management platform for frontline retail workers. This app handles authentication, the UI, database operations via Supabase, and all user-facing features. It calls a separate Python FastAPI microservice (already built and deployed on Railway) for AI-powered schedule extraction from photos.
 
-This is the main web application — it handles the frontend (React), API routes, authentication, database operations, and all user-facing features. It communicates with a separate Python FastAPI microservice (shiftsync-extraction repo) for AI-powered schedule extraction from photos.
-
-## Architecture Context
+## Architecture
 
 ```
-┌──────────────────────────────┐       ┌──────────────────────────┐
-│  THIS APP — Next.js (Vercel) │       │  Python FastAPI (Railway) │
-│                              │       │  (separate repo)          │
-│  React Frontend              │       │                          │
-│  ├── Auth pages              │       │  POST /extract-schedule  │
-│  ├── Dashboard               │       │    ├── Receives image    │
-│  ├── Schedule upload/verify  │       │    ├── Calls Claude      │
-│  ├── Swap flows              │       │    │   Vision API        │
-│  ├── Comments                │       │    ├── Validates JSON    │
-│  └── Notifications           │       │    └── Returns shifts    │
-│                              │       │                          │
-│  API Routes                  │       │                          │
-│  ├── /api/departments        │       │                          │
-│  ├── /api/schedules ─────────┼──────→│                          │
-│  ├── /api/shifts             │ HTTP  │                          │
-│  ├── /api/swaps              │       │                          │
-│  ├── /api/comments           │       │                          │
-│  └── /api/notifications      │       │                          │
-└────────────┬─────────────────┘       └──────────────────────────┘
+┌──────────────────────────────┐       ┌──────────────────────────────────────┐
+│  THIS APP — Next.js (Vercel) │       │  Python FastAPI (Railway) — DONE     │
+│                              │       │  shiftsync-extraction-production     │
+│  React Frontend              │       │  .up.railway.app                     │
+│  ├── Auth pages              │       │                                      │
+│  ├── Dashboard               │       │  POST /extract-schedule              │
+│  ├── Schedule upload/verify  │       │    └── Returns structured JSON       │
+│  ├── Swap flows              │       │                                      │
+│  ├── Comments                │       │                                      │
+│  └── Notifications           │       │                                      │
+│                              │       │                                      │
+│  API Routes (server-side)    │       │                                      │
+│  ├── /api/departments        │       │                                      │
+│  ├── /api/schedules ─────────┼──────→│                                      │
+│  ├── /api/shifts             │ HTTP  │                                      │
+│  ├── /api/swaps              │       │                                      │
+│  ├── /api/comments           │       │                                      │
+│  └── /api/notifications      │       │                                      │
+└────────────┬─────────────────┘       └──────────────────────────────────────┘
              │
              ▼
 ┌──────────────────────────────┐
 │  Supabase                    │
 │  ├── Auth (email, Google)    │
 │  ├── Postgres Database       │
+│  │   (8 tables with RLS)     │
 │  ├── Storage (schedule imgs) │
 │  └── Row-Level Security      │
 └──────────────────────────────┘
@@ -41,52 +40,70 @@ This is the main web application — it handles the frontend (React), API routes
 
 ## Tech Stack
 
-- Next.js 14+ (App Router) with TypeScript
+- Next.js 14+ with App Router and TypeScript
 - React 18+
 - Tailwind CSS for styling
-- Supabase JS client (@supabase/supabase-js) for auth, database, storage
+- @supabase/ssr for auth and database (NOT the deprecated @supabase/auth-helpers-nextjs)
+- @supabase/supabase-js for the Supabase client
 - Deployed on Vercel (free tier)
 
-## File Structure (target when complete)
+## Environment Variables (.env.local)
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+EXTRACTION_SERVICE_URL=https://shiftsync-extraction-production.up.railway.app
+```
+
+- NEXT_PUBLIC_ prefix = visible to the browser (safe for Supabase anon key, security comes from RLS)
+- No prefix = server-only (SUPABASE_SERVICE_ROLE_KEY bypasses RLS, EXTRACTION_SERVICE_URL is called from API routes)
+
+## File Structure
 
 ```
 shiftsync/
 ├── CLAUDE.md                       # This file
 ├── app/
-│   ├── layout.tsx                  # Root layout (wraps every page)
-│   ├── page.tsx                    # Landing / home page
+│   ├── layout.tsx                  # Root layout — wraps every page, includes auth provider
+│   ├── page.tsx                    # Landing page — redirects to dashboard or login
 │   ├── login/
 │   │   └── page.tsx                # Login page
 │   ├── signup/
 │   │   └── page.tsx                # Signup page
+│   ├── auth/
+│   │   └── callback/
+│   │       └── route.ts            # OAuth callback handler (for Google sign-in)
 │   ├── dashboard/
 │   │   └── page.tsx                # Main department dashboard
+│   ├── department/
+│   │   └── page.tsx                # Create or join department
 │   ├── upload/
 │   │   └── page.tsx                # Schedule upload + verification
 │   ├── settings/
 │   │   └── page.tsx                # User settings
 │   ├── api/
 │   │   ├── departments/
-│   │   │   ├── route.ts            # POST (create) + GET (list)
+│   │   │   ├── route.ts            # POST (create) + GET (list user's departments)
 │   │   │   ├── [id]/
-│   │   │   │   └── route.ts        # GET (detail) + PATCH (update) + DELETE
+│   │   │   │   └── route.ts        # GET (detail + members) + PATCH (settings) + DELETE
 │   │   │   └── join/
 │   │   │       └── route.ts        # POST (join via invite code)
 │   │   ├── schedules/
 │   │   │   ├── upload/
-│   │   │   │   └── route.ts        # POST (upload image + call extraction service)
+│   │   │   │   └── route.ts        # POST (upload image → Supabase Storage → Python service)
 │   │   │   └── [id]/
-│   │   │       ├── route.ts        # GET + PATCH (extracted data)
+│   │   │       ├── route.ts        # GET (upload details) + PATCH (update extracted data)
 │   │   │       └── publish/
-│   │   │           └── route.ts    # POST (publish schedule, create shifts)
+│   │   │           └── route.ts    # POST (create shift records from verified data)
 │   │   ├── shifts/
-│   │   │   ├── route.ts            # GET (list shifts, filtered)
+│   │   │   ├── route.ts            # GET (list, filtered by department/user/date)
 │   │   │   ├── [id]/
 │   │   │   │   └── route.ts        # PATCH (update shift)
 │   │   │   └── export/
 │   │   │       └── route.ts        # GET (generate .ics file download)
 │   │   ├── swaps/
-│   │   │   ├── route.ts            # POST (create) + GET (list)
+│   │   │   ├── route.ts            # POST (create swap request) + GET (list for department)
 │   │   │   └── [id]/
 │   │   │       ├── claim/
 │   │   │       │   └── route.ts    # PATCH (claim an open shift)
@@ -99,336 +116,81 @@ shiftsync/
 │   │   │       └── cancel/
 │   │   │           └── route.ts    # PATCH (cancel own request)
 │   │   ├── comments/
-│   │   │   └── route.ts            # POST (add) + GET (list for target)
+│   │   │   └── route.ts            # POST (add comment) + GET (list for target)
 │   │   └── notifications/
 │   │       ├── route.ts            # GET (user's notifications)
 │   │       └── read/
 │   │           └── route.ts        # PATCH (mark as read)
 ├── components/
 │   ├── auth/
-│   │   ├── LoginForm.tsx
-│   │   └── SignupForm.tsx
+│   │   ├── LoginForm.tsx           # Email + password login form with Google sign-in button
+│   │   └── SignupForm.tsx          # Email + password signup form with Google sign-in button
 │   ├── dashboard/
-│   │   ├── CalendarGrid.tsx        # Weekly shift calendar
-│   │   ├── ShiftCard.tsx           # Individual shift display
-│   │   ├── ShiftDetailPanel.tsx    # Side panel with shift details + comments
-│   │   ├── Sidebar.tsx             # My shifts, open shifts, swap requests
-│   │   └── TopBar.tsx              # Dept name, invite code, notifications, settings
+│   │   ├── CalendarGrid.tsx        # Weekly calendar grid showing all department shifts
+│   │   ├── ShiftCard.tsx           # Single shift block in the calendar
+│   │   ├── ShiftDetailPanel.tsx    # Slide-out panel with shift details + comments
+│   │   ├── Sidebar.tsx             # My shifts, open shifts, swap requests lists
+│   │   └── TopBar.tsx              # Department name, invite code, notification bell, settings
 │   ├── schedule/
-│   │   ├── ImageUploader.tsx       # Drag-and-drop upload
-│   │   ├── ExtractionTable.tsx     # Editable table of extracted shifts
-│   │   ├── NameLinker.tsx          # Match extracted names to department members
-│   │   └── VerificationView.tsx    # Side-by-side photo + table
+│   │   ├── ImageUploader.tsx       # Drag-and-drop or click-to-upload component
+│   │   ├── ExtractionTable.tsx     # Editable table showing extracted shifts
+│   │   ├── NameLinker.tsx          # Dropdowns to match names to department members
+│   │   └── VerificationView.tsx    # Side-by-side: original photo left, table right
 │   ├── swaps/
-│   │   ├── SwapRequestForm.tsx     # Drop or trade a shift
-│   │   ├── SwapCard.tsx            # Display a swap request
-│   │   └── ApprovalPanel.tsx       # Team lead approve/reject
+│   │   ├── SwapRequestForm.tsx     # Modal/form for dropping or trading a shift
+│   │   ├── SwapCard.tsx            # Display card for a swap request
+│   │   └── ApprovalPanel.tsx       # Team lead approve/reject interface
 │   ├── comments/
-│   │   └── CommentThread.tsx       # Reusable comment thread component
+│   │   └── CommentThread.tsx       # Reusable comment list + input (used on shifts and swaps)
 │   ├── notifications/
-│   │   └── NotificationBell.tsx    # Bell icon with dropdown list
+│   │   └── NotificationBell.tsx    # Bell icon with unread count + dropdown list
 │   └── ui/
-│       ├── Button.tsx
-│       ├── Input.tsx
-│       ├── Modal.tsx
-│       └── Loading.tsx
+│       ├── Button.tsx              # Reusable button component
+│       ├── Input.tsx               # Reusable input component
+│       ├── Modal.tsx               # Reusable modal/dialog
+│       └── Loading.tsx             # Loading spinner/skeleton
 ├── lib/
 │   ├── supabase/
-│   │   ├── client.ts               # Browser-side Supabase client
-│   │   └── server.ts               # Server-side Supabase client (for API routes)
+│   │   ├── client.ts               # Browser-side Supabase client (createBrowserClient)
+│   │   └── server.ts               # Server-side Supabase client (createServerClient)
 │   ├── extraction.ts               # Function to call the Python extraction service
-│   └── ics.ts                      # .ics calendar file generation logic
+│   └── ics.ts                      # .ics calendar file generation
 ├── types/
-│   └── index.ts                    # TypeScript types matching the database schema
-├── public/                         # Static assets (logo, favicon)
+│   └── index.ts                    # TypeScript interfaces matching database schema
+├── middleware.ts                    # Auth middleware — protects routes, refreshes sessions
+├── public/                         # Static assets
 ├── .env.local                      # Secret keys (NEVER committed)
 ├── .gitignore
 ├── package.json
 ├── tailwind.config.ts
 ├── tsconfig.json
-├── next.config.ts
-└── README.md
+└── next.config.ts
 ```
 
-## Environment Variables (.env.local)
+## Core Concepts for This Codebase
 
-```
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-SUPABASE_SERVICE_ROLE_KEY=eyJ...
-EXTRACTION_SERVICE_URL=http://localhost:8000
-```
+### App Router (Next.js 14+)
+- Every folder inside `app/` with a `page.tsx` becomes a route
+- `app/login/page.tsx` → renders at `/login`
+- `app/dashboard/page.tsx` → renders at `/dashboard`
+- `app/api/departments/route.ts` → API endpoint at `/api/departments`
+- `[id]` folders are dynamic routes — `/api/departments/abc123` captures `abc123` as the `id` parameter
 
-- Variables prefixed with NEXT_PUBLIC_ are exposed to the browser (fine for Supabase anon key — it's designed to be public, security comes from RLS)
-- SUPABASE_SERVICE_ROLE_KEY is server-only — used in API routes for admin operations
-- EXTRACTION_SERVICE_URL points to the Python FastAPI service (localhost for dev, Railway URL for production)
+### Server Components vs Client Components
+- By default, every component in Next.js App Router is a SERVER component (runs on the server)
+- Add `"use client"` at the top of a file to make it a CLIENT component (runs in the browser)
+- Server components: can access environment variables without NEXT_PUBLIC_, can't use useState/useEffect
+- Client components: can use React hooks (useState, useEffect), handle user interactions (onClick, onChange)
+- Rule of thumb: pages that fetch and display data = server. Components with forms, buttons, interactivity = client.
 
-## Database Schema (Supabase Postgres)
-
-### Table: users (extends Supabase auth.users)
-```sql
-- id            UUID PRIMARY KEY (references auth.users.id)
-- email         TEXT NOT NULL
-- full_name     TEXT NOT NULL
-- avatar_url    TEXT
-- created_at    TIMESTAMPTZ DEFAULT now()
-```
-
-### Table: departments
-```sql
-- id                UUID PRIMARY KEY DEFAULT gen_random_uuid()
-- name              TEXT NOT NULL (e.g., "Best Buy Computing - Uptown")
-- invite_code       TEXT UNIQUE NOT NULL (6 chars, e.g., "BYC-492")
-- created_by        UUID REFERENCES users(id) NOT NULL
-- require_approval  BOOLEAN DEFAULT false
-- created_at        TIMESTAMPTZ DEFAULT now()
-```
-
-### Table: department_members
-```sql
-- id              UUID PRIMARY KEY DEFAULT gen_random_uuid()
-- department_id   UUID REFERENCES departments(id) ON DELETE CASCADE NOT NULL
-- user_id         UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL
-- role            TEXT CHECK (role IN ('team_lead', 'member')) DEFAULT 'member'
-- joined_at       TIMESTAMPTZ DEFAULT now()
-- UNIQUE(department_id, user_id)
-```
-
-### Table: schedule_uploads
-```sql
-- id                  UUID PRIMARY KEY DEFAULT gen_random_uuid()
-- department_id       UUID REFERENCES departments(id) ON DELETE CASCADE NOT NULL
-- uploaded_by         UUID REFERENCES users(id) NOT NULL
-- image_url           TEXT NOT NULL (Supabase Storage URL)
-- extracted_data      JSONB (raw structured output from Claude Vision)
-- status              TEXT CHECK (status IN ('processing', 'review', 'published')) DEFAULT 'processing'
-- schedule_start_date DATE
-- schedule_end_date   DATE
-- created_at          TIMESTAMPTZ DEFAULT now()
-```
-
-### Table: shifts
-```sql
-- id                  UUID PRIMARY KEY DEFAULT gen_random_uuid()
-- department_id       UUID REFERENCES departments(id) ON DELETE CASCADE NOT NULL
-- schedule_upload_id  UUID REFERENCES schedule_uploads(id) ON DELETE CASCADE NOT NULL
-- user_id             UUID REFERENCES users(id) (nullable — unassigned shifts)
-- employee_name       TEXT NOT NULL (name as extracted from schedule)
-- date                DATE NOT NULL
-- start_time          TIME NOT NULL
-- end_time            TIME NOT NULL
-- status              TEXT CHECK (status IN ('assigned', 'open', 'swap_pending')) DEFAULT 'assigned'
-- created_at          TIMESTAMPTZ DEFAULT now()
-```
-
-### Table: swap_requests
-```sql
-- id                UUID PRIMARY KEY DEFAULT gen_random_uuid()
-- department_id     UUID REFERENCES departments(id) ON DELETE CASCADE NOT NULL
-- requester_id      UUID REFERENCES users(id) NOT NULL
-- original_shift_id UUID REFERENCES shifts(id) NOT NULL
-- type              TEXT CHECK (type IN ('drop', 'trade')) NOT NULL
-- offered_shift_id  UUID REFERENCES shifts(id) (nullable — only for trades)
-- responder_id      UUID REFERENCES users(id) (nullable)
-- status            TEXT CHECK (status IN ('open', 'claimed', 'pending_approval', 'approved', 'rejected', 'cancelled')) DEFAULT 'open'
-- approved_by       UUID REFERENCES users(id) (nullable)
-- created_at        TIMESTAMPTZ DEFAULT now()
-- resolved_at       TIMESTAMPTZ
-```
-
-### Table: comments
-```sql
-- id              UUID PRIMARY KEY DEFAULT gen_random_uuid()
-- department_id   UUID REFERENCES departments(id) ON DELETE CASCADE NOT NULL
-- user_id         UUID REFERENCES users(id) NOT NULL
-- target_type     TEXT CHECK (target_type IN ('shift', 'swap_request', 'general')) NOT NULL
-- target_id       UUID NOT NULL
-- content         TEXT NOT NULL
-- created_at      TIMESTAMPTZ DEFAULT now()
-```
-
-### Table: notifications
-```sql
-- id            UUID PRIMARY KEY DEFAULT gen_random_uuid()
-- user_id       UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL
-- type          TEXT CHECK (type IN ('swap_request', 'swap_claimed', 'swap_approved', 'swap_rejected', 'schedule_published', 'comment')) NOT NULL
-- title         TEXT NOT NULL
-- message       TEXT NOT NULL
-- target_type   TEXT CHECK (target_type IN ('shift', 'swap_request', 'schedule')) NOT NULL
-- target_id     UUID NOT NULL
-- read          BOOLEAN DEFAULT false
-- created_at    TIMESTAMPTZ DEFAULT now()
-```
-
-### Entity Relationships
-```
-User ──┬── belongs to ──→ Department (via department_members)
-       ├── uploads ──→ Schedule Upload
-       ├── is assigned ──→ Shifts
-       ├── creates ──→ Swap Requests
-       ├── responds to ──→ Swap Requests
-       ├── writes ──→ Comments
-       └── receives ──→ Notifications
-
-Department ──┬── has many ──→ Members
-             ├── has many ──→ Schedule Uploads
-             ├── has many ──→ Shifts
-             └── has many ──→ Swap Requests
-
-Schedule Upload ──→ generates many ──→ Shifts
-
-Swap Request ──┬── references ──→ original Shift
-               ├── optionally references ──→ offered Shift (trade)
-               └── has many ──→ Comments
-```
-
-## Row-Level Security (RLS) Policies
-
-Every table must have RLS enabled. Key rules:
-
-- **users:** Users can only read/update their own profile
-- **departments:** Readable by members of that department only
-- **department_members:** Readable by members of the same department. Users can only delete their own membership (leave). Team leads can manage members.
-- **schedule_uploads:** Only department members can view. Only members can create.
-- **shifts:** Only visible to members of the shift's department
-- **swap_requests:** Only visible to members of the swap's department. Only the requester can create/cancel. Only department members can claim/accept. Only team leads can approve/reject.
-- **comments:** Only visible to members of the comment's department. Any member can create.
-- **notifications:** Users can only see their own notifications
-
-## API Endpoints
-
-### Departments
-```
-POST   /api/departments          — Create new department (auto-generate invite code, creator becomes team_lead)
-GET    /api/departments          — List departments the current user belongs to
-GET    /api/departments/[id]     — Get department details + member list
-POST   /api/departments/join     — Join department via invite code (body: { invite_code })
-PATCH  /api/departments/[id]     — Update settings like require_approval (team lead only)
-DELETE /api/departments/[id]     — Delete department (team lead only)
-```
-
-### Schedule Uploads
-```
-POST   /api/schedules/upload     — Upload image to Supabase Storage, forward to Python extraction service, save result
-GET    /api/schedules/[id]       — Get upload details + extracted data
-PATCH  /api/schedules/[id]       — Update extracted data (user edits during verification)
-POST   /api/schedules/[id]/publish — Publish: create shift records from verified data, notify department
-```
-
-### Shifts
-```
-GET    /api/shifts               — Get shifts filtered by department_id, user_id, date range
-GET    /api/shifts/export        — Generate and return .ics file for the current user's shifts
-PATCH  /api/shifts/[id]          — Update a shift (admin/team lead edit)
-```
-
-### Swap Requests
-```
-POST   /api/swaps                — Create swap request (body: { original_shift_id, type, offered_shift_id? })
-GET    /api/swaps                — List swap requests for a department (query: department_id, status)
-PATCH  /api/swaps/[id]/claim     — Claim an open (dropped) shift
-PATCH  /api/swaps/[id]/accept    — Accept a trade proposal
-PATCH  /api/swaps/[id]/approve   — Team lead approves a pending swap
-PATCH  /api/swaps/[id]/reject    — Team lead rejects a pending swap
-PATCH  /api/swaps/[id]/cancel    — Requester cancels their own request
-```
-
-### Comments
-```
-POST   /api/comments             — Add comment (body: { target_type, target_id, content })
-GET    /api/comments             — Get comments for a target (query: target_type, target_id)
-```
-
-### Notifications
-```
-GET    /api/notifications        — Get current user's notifications (sorted newest first)
-PATCH  /api/notifications/read   — Mark notifications as read (body: { notification_ids } or { all: true })
-```
-
-## Screens & User Flows
-
-### Screen 1: Auth (Login / Signup)
-- Email + password signup/login
-- Google sign-in button
-- After auth: check if user has departments → yes: dashboard, no: create/join screen
-
-### Screen 2: Create or Join Department
-- Create: enter name → system generates 6-char invite code → creator becomes team_lead
-- Join: enter invite code → validate → join as member → redirect to dashboard
-
-### Screen 3: Department Dashboard (main screen, 90% of time spent here)
-- **Top bar:** Department name, invite code (copy button), notification bell (unread count), settings gear (team lead only)
-- **Main area:** Weekly calendar grid with all department shifts. Color coding: user's shifts (blue), others (gray), open (yellow), swap-pending (orange). Click any shift → side panel with details + comments.
-- **Sidebar:** "My Shifts" list, "Open Shifts" list, "Swap Requests" list, "Export Calendar" button
-
-### Screen 4: Schedule Upload & Verification
-- Step 1: Drag-and-drop or file picker → loading state while extraction runs
-- Step 2: Side-by-side view — original photo (left) + editable extracted table (right). Users can edit cells, add rows, delete rows.
-- Step 3: Name linking — match extracted names to department members via dropdowns
-- Step 4: Publish button → creates shifts in DB, notifies department
-
-### Screen 5: Swap Request Flow
-- **Drop:** User clicks own shift → "Drop this shift" → flagged as open → other members see "Claim" button
-- **Trade:** User clicks own shift → "Trade this shift" → select which of their shifts to offer → posted as trade → other member sees "Accept Trade"
-- **Approval (if enabled):** After claim/accept → status = pending_approval → team lead approves/rejects → both parties notified
-
-### Screen 6: Notifications
-- Bell icon dropdown showing recent notifications
-- Types: schedule published, swap requested, swap claimed, swap approved/rejected, new comment
-- Each links to relevant shift or swap request
-- Mark as read / mark all as read
-
-### Screen 7: User Settings
-- Edit display name, change password, leave department
-
-## Calendar Export (.ics)
-
-Generate a .ics file containing the user's shifts. Each shift becomes a VEVENT:
-
-```
-BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//ShiftSync//EN
-BEGIN:VEVENT
-SUMMARY:Work - Computing
-DTSTART:20260120T140000
-DTEND:20260120T220000
-DESCRIPTION:Best Buy Computing - Uptown
-END:VEVENT
-END:VCALENDAR
-```
-
-The /api/shifts/export endpoint generates this file and returns it as a download.
-
-## Calling the Python Extraction Service (lib/extraction.ts)
-
-```typescript
-// lib/extraction.ts
-const EXTRACTION_URL = process.env.EXTRACTION_SERVICE_URL;
-
-export async function extractSchedule(imageBuffer: Buffer, filename: string) {
-  const formData = new FormData();
-  formData.append('file', new Blob([imageBuffer]), filename);
-
-  const response = await fetch(`${EXTRACTION_URL}/extract-schedule`, {
-    method: 'POST',
-    body: formData,
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.detail || 'Extraction failed');
-  }
-
-  return response.json();
-}
-```
-
-This is called from the /api/schedules/upload API route, NOT from the browser. The browser sends the image to the Next.js API route, which forwards it to the Python service. The EXTRACTION_SERVICE_URL env var is server-only (no NEXT_PUBLIC_ prefix).
+### Supabase Client Split
+- `lib/supabase/client.ts` — used in CLIENT components (browser-side), uses anon key
+- `lib/supabase/server.ts` — used in SERVER components and API routes, uses anon key but with cookie-based auth session
+- API routes that need to bypass RLS (like creating notifications) use `createClient` with the service role key directly
 
 ## TypeScript Types (types/index.ts)
 
-These should mirror the database schema:
+These match the database schema exactly:
 
 ```typescript
 export type UserRole = 'team_lead' | 'member';
@@ -440,7 +202,7 @@ export type CommentTargetType = 'shift' | 'swap_request' | 'general';
 export type NotificationType = 'swap_request' | 'swap_claimed' | 'swap_approved' | 'swap_rejected' | 'schedule_published' | 'comment';
 export type NotificationTargetType = 'shift' | 'swap_request' | 'schedule';
 
-export interface User {
+export interface Profile {
   id: string;
   email: string;
   full_name: string;
@@ -463,7 +225,7 @@ export interface DepartmentMember {
   user_id: string;
   role: UserRole;
   joined_at: string;
-  user?: User; // joined data
+  profile?: Profile;
 }
 
 export interface ScheduleUpload {
@@ -489,7 +251,7 @@ export interface Shift {
   end_time: string;
   status: ShiftStatus;
   created_at: string;
-  user?: User; // joined data
+  profile?: Profile;
 }
 
 export interface SwapRequest {
@@ -504,10 +266,10 @@ export interface SwapRequest {
   approved_by?: string;
   created_at: string;
   resolved_at?: string;
-  requester?: User;       // joined data
-  responder?: User;       // joined data
-  original_shift?: Shift; // joined data
-  offered_shift?: Shift;  // joined data
+  requester?: Profile;
+  responder?: Profile;
+  original_shift?: Shift;
+  offered_shift?: Shift;
 }
 
 export interface Comment {
@@ -518,7 +280,7 @@ export interface Comment {
   target_id: string;
   content: string;
   created_at: string;
-  user?: User; // joined data
+  profile?: Profile;
 }
 
 export interface Notification {
@@ -533,7 +295,6 @@ export interface Notification {
   created_at: string;
 }
 
-// Matches the Python extraction service response
 export interface ExtractionResult {
   department_name: string | null;
   schedule_period: {
@@ -568,116 +329,412 @@ export function createClient() {
 
 ### Server client (lib/supabase/server.ts)
 ```typescript
-// Used in API routes and server components
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-export function createClient() {
-  const cookieStore = cookies();
+export async function createClient() {
+  const cookieStore = await cookies();
+
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        // cookie handling for auth session
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {
+            // The `setAll` method is called from a Server Component
+            // which cannot set cookies. This can be ignored if middleware
+            // is refreshing sessions.
+          }
+        },
       },
     }
   );
 }
 ```
 
-Use @supabase/ssr package (NOT the old @supabase/auth-helpers-nextjs — that's deprecated).
+### Auth middleware (middleware.ts)
+```typescript
+import { createServerClient } from '@supabase/ssr';
+import { NextResponse, type NextRequest } from 'next/server';
 
-## Running Locally
+export async function middleware(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({ request });
 
-```bash
-# Install dependencies
-npm install
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            request.cookies.set(name, value)
+          );
+          supabaseResponse = NextResponse.next({ request });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          );
+        },
+      },
+    }
+  );
 
-# Create .env.local with Supabase keys and extraction service URL
-# (see Environment Variables section above)
+  const { data: { user } } = await supabase.auth.getUser();
 
-# Start dev server
-npm run dev
+  // Redirect unauthenticated users to login (except for auth pages)
+  if (!user && !request.nextUrl.pathname.startsWith('/login') 
+    && !request.nextUrl.pathname.startsWith('/signup')
+    && !request.nextUrl.pathname.startsWith('/auth')) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    return NextResponse.redirect(url);
+  }
 
-# App runs at http://localhost:3000
-# Make sure the Python extraction service is also running at localhost:8000
+  return supabaseResponse;
+}
+
+export const config = {
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
+};
 ```
 
-## Deployment (Vercel)
+## Calling the Python Extraction Service (lib/extraction.ts)
 
-1. Push code to GitHub
-2. Import the repo in Vercel dashboard
-3. Vercel auto-detects Next.js
-4. Add environment variables in Vercel dashboard:
-   - NEXT_PUBLIC_SUPABASE_URL
-   - NEXT_PUBLIC_SUPABASE_ANON_KEY
-   - SUPABASE_SERVICE_ROLE_KEY
-   - EXTRACTION_SERVICE_URL = https://your-railway-url.up.railway.app
-5. Deploy
+```typescript
+const EXTRACTION_URL = process.env.EXTRACTION_SERVICE_URL;
+
+export async function extractSchedule(imageBuffer: Buffer, filename: string) {
+  const formData = new FormData();
+  formData.append('file', new Blob([imageBuffer]), filename);
+
+  const response = await fetch(`${EXTRACTION_URL}/extract-schedule`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Extraction failed' }));
+    throw new Error(error.detail || 'Extraction failed');
+  }
+
+  return response.json();
+}
+```
+
+This is called from the /api/schedules/upload API route, NOT from the browser.
+
+## .ics Calendar Export (lib/ics.ts)
+
+```typescript
+export function generateICS(shifts: Shift[], departmentName: string): string {
+  const events = shifts.map(shift => {
+    const startDate = shift.date.replace(/-/g, '');
+    const startTime = shift.start_time.replace(':', '') + '00';
+    const endTime = shift.end_time.replace(':', '') + '00';
+
+    return [
+      'BEGIN:VEVENT',
+      `SUMMARY:Work - ${departmentName}`,
+      `DTSTART:${startDate}T${startTime}`,
+      `DTEND:${startDate}T${endTime}`,
+      `DESCRIPTION:${departmentName}`,
+      `UID:${shift.id}@shiftsync`,
+      'END:VEVENT',
+    ].join('\r\n');
+  });
+
+  return [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//ShiftSync//EN',
+    ...events,
+    'END:VCALENDAR',
+  ].join('\r\n');
+}
+```
+
+## API Endpoint Specifications
+
+### Departments
+
+**POST /api/departments** — Create a new department
+```
+Request body: { name: string }
+Logic:
+  1. Get current user from session
+  2. Generate unique 6-char invite code
+  3. Insert into departments table (created_by = current user)
+  4. Insert into department_members (user_id = current user, role = 'team_lead')
+  5. Return the department with invite code
+```
+
+**GET /api/departments** — List user's departments
+```
+Logic:
+  1. Get current user
+  2. Query department_members where user_id = current user
+  3. Join with departments table
+  4. Return list of departments with member count
+```
+
+**POST /api/departments/join** — Join via invite code
+```
+Request body: { invite_code: string }
+Logic:
+  1. Get current user
+  2. Look up department by invite_code
+  3. Check user isn't already a member
+  4. Insert into department_members (role = 'member')
+  5. Return the department
+```
+
+**PATCH /api/departments/[id]** — Update settings
+```
+Request body: { require_approval?: boolean, name?: string }
+Logic:
+  1. Verify current user is team_lead of this department
+  2. Update the department
+  3. Return updated department
+```
+
+### Schedule Uploads
+
+**POST /api/schedules/upload** — Upload and extract
+```
+Request: multipart/form-data with image file
+Logic:
+  1. Get current user, verify department membership
+  2. Upload image to Supabase Storage 'schedules' bucket
+  3. Get public URL of uploaded image
+  4. Create schedule_uploads row (status = 'processing')
+  5. Send image to Python extraction service
+  6. Update schedule_uploads row with extracted_data (status = 'review')
+  7. Return the upload with extracted data
+```
+
+**POST /api/schedules/[id]/publish** — Publish verified schedule
+```
+Request body: { shifts: Array<{employee_name, date, start_time, end_time, user_id?}>, schedule_start_date, schedule_end_date }
+Logic:
+  1. Verify current user is department member
+  2. Update schedule_uploads status to 'published', set dates
+  3. Insert all shifts into shifts table
+  4. Create notification for all department members ("New schedule published")
+  5. Return the published shifts
+```
+
+### Shifts
+
+**GET /api/shifts** — List shifts
+```
+Query params: department_id, user_id?, start_date?, end_date?
+Logic:
+  1. Verify current user is member of department
+  2. Query shifts table with filters
+  3. Join with profiles for user info
+  4. Return shifts
+```
+
+**GET /api/shifts/export** — Export .ics
+```
+Query params: department_id
+Logic:
+  1. Get current user's shifts for the department
+  2. Generate .ics content using lib/ics.ts
+  3. Return as file download with Content-Type: text/calendar
+```
+
+### Swap Requests
+
+**POST /api/swaps** — Create swap request
+```
+Request body: { original_shift_id, type: 'drop' | 'trade', offered_shift_id? }
+Logic:
+  1. Verify current user owns the original shift
+  2. Create swap_request (status = 'open')
+  3. Update original shift status to 'swap_pending'
+  4. Create notification for department members
+  5. Return the swap request
+```
+
+**PATCH /api/swaps/[id]/claim** — Claim an open shift
+```
+Logic:
+  1. Verify swap is type 'drop' and status 'open'
+  2. If department requires approval:
+     - Set status to 'pending_approval', set responder_id
+  3. If no approval needed:
+     - Set status to 'approved', reassign shift to claimer
+  4. Create notifications
+```
+
+**PATCH /api/swaps/[id]/accept** — Accept a trade
+```
+Logic:
+  1. Verify swap is type 'trade' and status 'open'
+  2. If department requires approval:
+     - Set status to 'pending_approval', set responder_id
+  3. If no approval needed:
+     - Set status to 'approved', swap both shifts' user_ids
+  4. Create notifications
+```
+
+**PATCH /api/swaps/[id]/approve** — Team lead approve
+```
+Logic:
+  1. Verify current user is team_lead
+  2. Set status to 'approved', set approved_by
+  3. Reassign shift(s) based on swap type
+  4. Create notifications for both parties
+```
+
+**PATCH /api/swaps/[id]/reject** — Team lead reject
+```
+Logic:
+  1. Verify current user is team_lead
+  2. Set status to 'rejected'
+  3. Reset original shift status to 'assigned'
+  4. Create notifications for both parties
+```
+
+### Comments
+
+**POST /api/comments** — Add comment
+```
+Request body: { target_type, target_id, content }
+Logic:
+  1. Verify current user is department member
+  2. Insert comment
+  3. Create notification for relevant users (shift owner, swap participants)
+  4. Return the comment
+```
+
+**GET /api/comments** — Get comments
+```
+Query params: target_type, target_id
+Logic:
+  1. Query comments for the target
+  2. Join with profiles for user info
+  3. Return comments sorted by created_at
+```
+
+### Notifications
+
+**GET /api/notifications** — Get user's notifications
+```
+Logic:
+  1. Query notifications where user_id = current user
+  2. Sort by created_at DESC
+  3. Return with unread count
+```
+
+**PATCH /api/notifications/read** — Mark as read
+```
+Request body: { notification_ids: string[] } or { all: true }
+Logic:
+  1. Update read = true for specified notifications (or all)
+  2. Return updated count
+```
+
+## Invite Code Generation
+
+```typescript
+function generateInviteCode(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+```
+
+Note: excludes easily confused characters (0/O, 1/I/L) so codes are easy to read and type.
 
 ## Build Progress
 
-### Phase 2: Next.js Foundation (Days 4-7)
+### Phase 2: Foundation (Days 4-7)
 - [ ] Next.js project setup with TypeScript and Tailwind
-- [ ] Supabase client setup (browser + server)
+- [ ] Install @supabase/ssr and @supabase/supabase-js
+- [ ] Supabase client setup (lib/supabase/client.ts and server.ts)
+- [ ] Auth middleware (middleware.ts)
+- [ ] TypeScript types (types/index.ts)
 - [ ] Signup page with email/password and Google sign-in
 - [ ] Login page
-- [ ] Auth redirect logic (has departments → dashboard, no departments → create/join)
-- [ ] Create all database tables in Supabase SQL editor
-- [ ] Set up RLS policies for all tables
-- [ ] Create department flow (name → invite code → team_lead)
-- [ ] Join department flow (invite code → validate → join as member)
+- [ ] Auth callback route (app/auth/callback/route.ts)
+- [ ] Auth redirect logic (has departments → dashboard, else → create/join)
+- [ ] Create department page (name → invite code → team_lead)
+- [ ] Join department page (enter invite code → validate → join)
+- [ ] POST/GET /api/departments routes
+- [ ] POST /api/departments/join route
 - [ ] Department dashboard layout (top bar, main area, sidebar)
 - [ ] Fetch and display department members
 - [ ] Invite code display with copy button
-- [ ] Loading states, error handling, basic responsive design
+- [ ] Loading states, error handling
 
 ### Phase 3: AI Integration (Days 8-10)
-- [ ] Schedule upload UI (drag-and-drop / file picker)
+- [ ] lib/extraction.ts (call Python service)
+- [ ] POST /api/schedules/upload route
 - [ ] Supabase Storage bucket for schedule images
-- [ ] API route: upload image → store in Supabase → forward to Python service
+- [ ] Schedule upload UI (ImageUploader component)
 - [ ] Display extraction result on screen
-- [ ] Side-by-side verification view (photo left, editable table right)
-- [ ] Editable cells in extraction table
-- [ ] Add row / delete row buttons
-- [ ] Date range picker for schedule period
-- [ ] Name linking step (match names to department members)
-- [ ] Publish action (create shift records in DB, notify department)
+- [ ] Side-by-side verification view (VerificationView component)
+- [ ] Editable extraction table (ExtractionTable component)
+- [ ] Add row / delete row in extraction table
+- [ ] Name linking step (NameLinker component)
+- [ ] POST /api/schedules/[id]/publish route
+- [ ] Publish action creates shift records
 
 ### Phase 4: Core Features (Days 11-15)
-- [ ] Weekly calendar grid with color-coded shifts
-- [ ] Shift detail side panel (click to expand)
-- [ ] "Drop this shift" flow (create swap_request type=drop, update shift status)
+- [ ] GET /api/shifts route
+- [ ] Weekly calendar grid (CalendarGrid component)
+- [ ] Color-coded shifts (mine=blue, others=gray, open=yellow, pending=orange)
+- [ ] Shift detail side panel (ShiftDetailPanel component)
+- [ ] POST /api/swaps route
+- [ ] "Drop this shift" flow
+- [ ] PATCH /api/swaps/[id]/claim route
 - [ ] "Claim" button on open shifts
-- [ ] "Trade this shift" flow (select offered shift, create swap_request type=trade)
-- [ ] "Accept Trade" flow
-- [ ] require_approval toggle in department settings (team lead only)
-- [ ] Approval flow (pending_approval → team lead approves/rejects)
-- [ ] Comment thread component (reusable)
-- [ ] Comments on shifts
-- [ ] Comments on swap requests
-- [ ] Notification creation on key events
-- [ ] Notification bell dropdown with unread count
-- [ ] Mark as read / mark all as read
-- [ ] .ics file generation for user's shifts
+- [ ] "Trade this shift" flow
+- [ ] PATCH /api/swaps/[id]/accept route
+- [ ] PATCH /api/departments/[id] route (require_approval toggle)
+- [ ] PATCH /api/swaps/[id]/approve and reject routes
+- [ ] Approval flow UI
+- [ ] POST/GET /api/comments routes
+- [ ] CommentThread component (reusable)
+- [ ] GET/PATCH /api/notifications routes
+- [ ] NotificationBell component with unread count
+- [ ] GET /api/shifts/export route
+- [ ] lib/ics.ts implementation
 - [ ] "Export to Calendar" button
 
 ### Phase 5: Polish & Ship (Days 16-18)
 - [ ] Responsive design for mobile
 - [ ] Loading skeletons and empty states
-- [ ] Consistent error messages
+- [ ] Error messages and edge cases
 - [ ] Deploy to Vercel
-- [ ] End-to-end testing of full flow
-- [ ] README.md with setup instructions and architecture diagram
+- [ ] End-to-end testing
+- [ ] README.md
 - [ ] Demo video / screenshots
 
-## Commit Messages to Use
+## Commit Messages
 
 ```
 feat: Next.js project setup with TypeScript and Tailwind
-feat: Supabase auth with email/password and Google sign-in
-feat: create department with auto-generated invite code
+feat: Supabase client setup and auth middleware
+feat: TypeScript types for all database tables
+feat: signup and login pages with email and Google auth
+feat: auth callback route for OAuth
+feat: create department with invite code generation
 feat: join department via invite code
 feat: department dashboard layout with member list
 feat: schedule photo upload to Supabase Storage
@@ -687,7 +744,7 @@ feat: editable extraction table with add/delete rows
 feat: name linking for extracted employee names
 feat: publish schedule and create shift records
 feat: weekly calendar view with color-coded shifts
-feat: shift detail side panel
+feat: shift detail side panel with comments
 feat: shift drop and claim swap flow
 feat: shift trade proposal and acceptance flow
 feat: team lead approval toggle and workflow
