@@ -29,7 +29,23 @@ export default function LoginPage() {
       return;
     }
 
-    router.push('/dashboard');
+    // Send first-time users to create or join a department; everyone else
+    // straight to their dashboard.
+    let destination = '/department';
+    try {
+      const res = await fetch('/api/departments');
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.departments) && data.departments.length > 0) {
+          destination = '/dashboard';
+        }
+      }
+    } catch {
+      // If the check fails, /dashboard redirects to /department when needed.
+      destination = '/dashboard';
+    }
+
+    router.push(destination);
     router.refresh();
   }
 

@@ -1,6 +1,22 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import SignOutButton from '@/components/auth/SignOutButton';
+import InviteCode from '@/components/dashboard/InviteCode';
+import type { Department, Profile, UserRole } from '@/types';
+
+type MembershipRow = {
+  role: UserRole;
+  joined_at: string;
+  departments: Department | null;
+};
+
+type MemberRow = {
+  id: string;
+  role: UserRole;
+  joined_at: string;
+  user_id: string;
+  profiles: Profile | null;
+};
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -12,18 +28,97 @@ export default async function DashboardPage() {
     redirect('/login');
   }
 
+  const { data: membershipData } = await supabase
+    .from('department_members')
+    .select(
+      'role, joined_at, departments(id, name, invite_code, created_by, require_approval, created_at)'
+    )
+    .eq('user_id', user.id)
+    .order('joined_at', { ascending: true });
+
+  const memberships = (membershipData ?? []) as unknown as MembershipRow[];
+  const department = memberships.find((m) => m.departments)?.departments;
+
+  if (!department) {
+    redirect('/department');
+  }
+
+  const { data: memberData } = await supabase
+    .from('department_members')
+    .select('id, role, joined_at, user_id, profiles(id, email, full_name, avatar_url, created_at)')
+    .eq('department_id', department.id)
+    .order('joined_at', { ascending: true });
+
+  const members = (memberData ?? []) as unknown as MemberRow[];
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-950 px-4">
-      <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-8 shadow-xl">
-        <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">
-          Welcome to ShiftSync
-        </h1>
-        <p className="mt-2 text-sm text-zinc-400">
-          Signed in as <span className="text-zinc-200">{user.email}</span>
-        </p>
-        <div className="mt-6">
+    <div className="min-h-screen bg-zinc-950 px-4 py-12">
+      <div className="mx-auto w-full max-w-2xl space-y-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">
+              {department.name}
+            </h1>
+            <p className="mt-1 text-sm text-zinc-400">
+              Signed in as <span className="text-zinc-200">{user.email}</span>
+            </p>
+          </div>
           <SignOutButton />
         </div>
+
+        <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 shadow-xl">
+          <h2 className="text-sm font-medium text-zinc-300">Invite code</h2>
+          <p className="mt-1 text-sm text-zinc-500">
+            Share this with teammates so they can join.
+          </p>
+          <div className="mt-3">
+            <InviteCode code={department.invite_code} />
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 shadow-xl">
+          <h2 className="text-sm font-medium text-zinc-300">
+            Members{members.length > 0 ? ` (${members.length})` : ''}
+          </h2>
+
+          {members.length === 0 ? (
+            <p className="mt-3 text-sm text-zinc-500">No members to show yet.</p>
+          ) : (
+            <ul className="mt-3 divide-y divide-zinc-800">
+              {members.map((member) => (
+                <li
+                  key={member.id}
+                  className="flex items-center justify-between gap-4 py-3"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-zinc-100">
+                      {member.profiles?.full_name?.trim() ||
+                        member.profiles?.email ||
+                        'Unknown member'}
+                      {member.user_id === user.id && (
+                        <span className="ml-2 text-xs text-zinc-500">(you)</span>
+                      )}
+                    </p>
+                    {member.profiles?.email && (
+                      <p className="truncate text-xs text-zinc-500">
+                        {member.profiles.email}
+                      </p>
+                    )}
+                  </div>
+                  <span
+                    className={
+                      member.role === 'team_lead'
+                        ? 'shrink-0 rounded-full border border-blue-900 bg-blue-950 px-2.5 py-0.5 text-xs font-medium text-blue-300'
+                        : 'shrink-0 rounded-full border border-zinc-700 bg-zinc-800 px-2.5 py-0.5 text-xs font-medium text-zinc-300'
+                    }
+                  >
+                    {member.role === 'team_lead' ? 'Team lead' : 'Member'}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       </div>
     </div>
   );
