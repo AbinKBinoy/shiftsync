@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import SignOutButton from '@/components/auth/SignOutButton';
 import InviteCode from '@/components/dashboard/InviteCode';
+import CalendarGrid from '@/components/dashboard/CalendarGrid';
 import type { Department, Profile, UserRole } from '@/types';
 
 type MembershipRow = {
@@ -54,7 +55,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-zinc-950 px-4 py-12">
-      <div className="mx-auto w-full max-w-2xl space-y-6">
+      <div className="mx-auto w-full max-w-6xl space-y-6">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">
@@ -84,6 +85,8 @@ export default async function DashboardPage() {
             <InviteCode code={department.invite_code} />
           </div>
         </section>
+
+        <CalendarGrid departmentId={department.id} currentUserId={user.id} />
 
         <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 shadow-xl">
           <h2 className="text-sm font-medium text-zinc-300">
@@ -117,8 +120,8 @@ export default async function DashboardPage() {
                   <span
                     className={
                       member.role === 'team_lead'
-                        ? 'shrink-0 rounded-full border border-blue-900 bg-blue-950 px-2.5 py-0.5 text-xs font-medium text-blue-300'
-                        : 'shrink-0 rounded-full border border-zinc-700 bg-zinc-800 px-2.5 py-0.5 text-xs font-medium text-zinc-300'
+                        ? 'shrink-0 rounded-md border border-blue-900 bg-blue-950 px-2.5 py-0.5 text-xs font-medium text-blue-300'
+                        : 'shrink-0 rounded-md border border-zinc-700 bg-zinc-800 px-2.5 py-0.5 text-xs font-medium text-zinc-300'
                     }
                   >
                     {member.role === 'team_lead' ? 'Team lead' : 'Member'}
