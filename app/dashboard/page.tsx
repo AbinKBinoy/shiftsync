@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import SignOutButton from '@/components/auth/SignOutButton';
@@ -63,7 +64,15 @@ export default async function DashboardPage() {
               Signed in as <span className="text-zinc-200">{user.email}</span>
             </p>
           </div>
-          <SignOutButton />
+          <div className="flex shrink-0 items-center gap-3">
+            <Link
+              href="/upload"
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500"
+            >
+              Upload Schedule
+            </Link>
+            <SignOutButton />
+          </div>
         </div>
 
         <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 shadow-xl">
