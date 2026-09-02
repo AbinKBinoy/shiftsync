@@ -15,12 +15,19 @@ function messageFromDetail(detail: unknown): string | null {
   return null;
 }
 
+// `contentType` is required: a Blob built without one is sent as
+// application/octet-stream, which the extraction service rejects outright.
 export async function extractSchedule(
   imageBuffer: Buffer,
-  filename: string
+  filename: string,
+  contentType: string
 ): Promise<ExtractionResult> {
   const formData = new FormData();
-  formData.append('file', new Blob([new Uint8Array(imageBuffer)]), filename);
+  formData.append(
+    'file',
+    new Blob([new Uint8Array(imageBuffer)], { type: contentType }),
+    filename
+  );
 
   const response = await fetch(`${EXTRACTION_URL}/extract-schedule`, {
     method: 'POST',

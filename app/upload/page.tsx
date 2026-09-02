@@ -17,7 +17,18 @@ type EditableShift = {
 type DepartmentOption = { id: string; name: string };
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'];
 const MAX_BYTES = 10 * 1024 * 1024;
+
+// Browsers derive `file.type` from the OS, which can report an empty or generic
+// type for otherwise valid images (WhatsApp downloads are a common case). Try
+// the MIME type first, then fall back to the file extension.
+function isAllowedImage(file: File): boolean {
+  if (ALLOWED_TYPES.includes(file.type)) return true;
+
+  const name = file.name.toLowerCase();
+  return ALLOWED_EXTENSIONS.some((ext) => name.endsWith(ext));
+}
 
 const cellClass =
   'w-full rounded border border-transparent bg-transparent px-2 py-1 text-sm text-zinc-100 outline-none hover:border-zinc-700 focus:border-blue-500 focus:bg-zinc-950';
@@ -98,7 +109,7 @@ export default function UploadPage() {
     setError(null);
     if (!next) return;
 
-    if (!ALLOWED_TYPES.includes(next.type)) {
+    if (!isAllowedImage(next)) {
       setError('Unsupported image type. Use JPEG, PNG, or WebP.');
       return;
     }
@@ -306,7 +317,7 @@ export default function UploadPage() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/jpeg,image/png,image/webp"
+                accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
                 className="hidden"
                 onChange={(e) => selectFile(e.target.files?.[0] ?? null)}
               />

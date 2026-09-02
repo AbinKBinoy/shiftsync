@@ -2,9 +2,9 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import {
   createAdminClient,
+  sniffImageType,
   SCHEDULES_BUCKET,
   MAX_IMAGE_BYTES,
-  ALLOWED_IMAGE_TYPES,
   SIGNED_URL_TTL_SECONDS,
 } from '@/lib/supabase/admin';
 import { extractSchedule } from '@/lib/extraction';
@@ -17,6 +17,18 @@ function sanitizeFilename(name: string): string {
 // POST /api/schedules/upload — store the photo, then run it through the
 // Python extraction service.
 export async function POST(request: NextRequest) {
+  try {
+    return await handleUpload(request);
+  } catch (err) {
+    console.error('[POST /api/schedules/upload] Unhandled error:', err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Upload failed' },
+      { status: 500 }
+    );
+  }
+}
+
+async function handleUpload(request: NextRequest) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -50,13 +62,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-    return NextResponse.json(
-      { error: `Unsupported image type. Use JPEG, PNG, or WebP.` },
-      { status: 400 }
-    );
-  }
-
+  // Checked before buffering so an oversized file is never read into memory.
   if (file.size > MAX_IMAGE_BYTES) {
     return NextResponse.json(
       { error: 'Image is larger than the 10MB limit.' },
@@ -79,13 +85,24 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  // Trust the file's contents, not the browser's MIME guess.
+  const contentType = sniffImageType(buffer);
+
+  if (!contentType) {
+    return NextResponse.json(
+      { error: 'Unsupported image type. Use JPEG, PNG, or WebP.' },
+      { status: 400 }
+    );
+  }
+
   const admin = createAdminClient();
   const path = `${departmentId}/${Date.now()}_${sanitizeFilename(file.name)}`;
-  const buffer = Buffer.from(await file.arrayBuffer());
 
   const { error: storageError } = await admin.storage
     .from(SCHEDULES_BUCKET)
-    .upload(path, buffer, { contentType: file.type, upsert: false });
+    .upload(path, buffer, { contentType, upsert: false });
 
   if (storageError) {
     return NextResponse.json({ error: storageError.message }, { status: 500 });
@@ -111,8 +128,9 @@ export async function POST(request: NextRequest) {
 
   let extracted;
   try {
-    extracted = await extractSchedule(buffer, file.name);
+    extracted = await extractSchedule(buffer, file.name, contentType);
   } catch (err) {
+    console.error('[POST /api/schedules/upload] Extraction failed:', err);
     // Leave the row in 'processing' so the upload isn't lost and can be retried.
     return NextResponse.json(
       {
