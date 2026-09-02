@@ -6,6 +6,7 @@ import InviteCode from '@/components/dashboard/InviteCode';
 import CalendarGrid from '@/components/dashboard/CalendarGrid';
 import SwapSidebar from '@/components/dashboard/SwapSidebar';
 import DashboardData from '@/components/dashboard/DashboardData';
+import NameLinker from '@/components/dashboard/NameLinker';
 import type { Department, Profile, UserRole } from '@/types';
 
 type MembershipRow = {
@@ -96,6 +97,13 @@ export default async function DashboardPage() {
             'team_lead'
           }
         >
+          <NameLinker
+            members={members.map((m) => ({
+              user_id: m.user_id,
+              name: m.profiles?.full_name?.trim() || m.profiles?.email || 'Member',
+              email: m.profiles?.email ?? '',
+            }))}
+          />
           <CalendarGrid />
           <SwapSidebar />
         </DashboardData>
