@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useDashboard } from './DashboardData';
 import { formatFullDate, formatTime } from '@/lib/dates';
 import type { Shift, ShiftStatus } from '@/types';
 
 type ShiftDetailPanelProps = {
   shift: Shift | null;
-  currentUserId: string;
   onClose: () => void;
 };
 
@@ -15,6 +15,13 @@ const STATUS_LABELS: Record<ShiftStatus, string> = {
   open: 'Open',
   swap_pending: 'Swap pending',
 };
+
+const positiveButton =
+  'rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50';
+const neutralButton =
+  'rounded-lg border border-zinc-700 px-3 py-2 text-sm font-medium text-zinc-200 transition-colors hover:border-zinc-600 hover:text-zinc-50 disabled:cursor-not-allowed disabled:opacity-50';
+const destructiveButton =
+  'rounded-lg border border-rose-800 bg-rose-950 px-3 py-2 text-sm font-medium text-rose-200 transition-colors hover:border-rose-700 disabled:cursor-not-allowed disabled:opacity-50';
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -27,10 +34,16 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 export default function ShiftDetailPanel({
   shift,
-  currentUserId,
   onClose,
 }: ShiftDetailPanelProps) {
-  // Close on Escape while the panel is open.
+  const { currentUserId, isTeamLead, shifts, swapForShift, refresh } =
+    useDashboard();
+
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [tradeOpen, setTradeOpen] = useState(false);
+  const [offeredShiftId, setOfferedShiftId] = useState('');
+
   useEffect(() => {
     if (!shift) return;
 
@@ -42,17 +55,70 @@ export default function ShiftDetailPanel({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [shift, onClose]);
 
+  const swap = shift ? swapForShift(shift.id) : null;
+
+  // A trade is proposed for one specific shift, so only its owner can accept.
+  const tradeableShifts = useMemo(
+    () =>
+      shifts.filter(
+        (s) =>
+          s.id !== shift?.id &&
+          s.status === 'assigned' &&
+          s.user_id &&
+          s.user_id !== currentUserId
+      ),
+    [shifts, shift?.id, currentUserId]
+  );
+
   if (!shift) return null;
 
   const isMine = Boolean(shift.user_id) && shift.user_id === currentUserId;
+  const isRequester = swap?.requester_id === currentUserId;
+  const offeredToMe =
+    swap?.type === 'trade' &&
+    swap.status === 'open' &&
+    swap.offered_shift_id != null &&
+    shifts.some(
+      (s) => s.id === swap.offered_shift_id && s.user_id === currentUserId
+    );
+
+  async function act(path: string, init?: RequestInit) {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(path, init);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error ?? 'That action failed');
+        return;
+      }
+      setTradeOpen(false);
+      setOfferedShiftId('');
+      refresh();
+    } catch {
+      setError('Could not reach the server. Please try again.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const createSwap = (type: 'drop' | 'trade', offered?: string) =>
+    act('/api/swaps', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        original_shift_id: shift.id,
+        type,
+        ...(offered ? { offered_shift_id: offered } : {}),
+      }),
+    });
+
+  const swapAction = (action: string) =>
+    swap ? act(`/api/swaps/${swap.id}/${action}`, { method: 'PATCH' }) : undefined;
 
   return (
     <div className="fixed inset-0 z-50">
-      <div
-        onClick={onClose}
-        aria-hidden
-        className="absolute inset-0 bg-black/60"
-      />
+      <div onClick={onClose} aria-hidden className="absolute inset-0 bg-black/60" />
 
       <aside
         role="dialog"
@@ -105,7 +171,157 @@ export default function ShiftDetailPanel({
               </span>
             )}
           </Field>
+
+          {swap && (
+            <Field label="Swap request">
+              <span className="capitalize">{swap.type}</span> ·{' '}
+              {swap.status.replace('_', ' ')}
+              {swap.requester && (
+                <span className="block text-xs text-zinc-500">
+                  Requested by{' '}
+                  {swap.requester.full_name?.trim() || swap.requester.email}
+                </span>
+              )}
+            </Field>
+          )}
         </dl>
+
+        {error && (
+          <p
+            role="alert"
+            className="mt-5 rounded-lg border border-red-900 bg-red-950 px-3 py-2 text-sm text-red-300"
+          >
+            {error}
+          </p>
+        )}
+
+        <div className="mt-6 flex flex-col gap-2">
+          {isMine && shift.status === 'assigned' && !swap && (
+            <>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => createSwap('drop')}
+                className={neutralButton}
+              >
+                Drop this shift
+              </button>
+
+              {!tradeOpen ? (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => setTradeOpen(true)}
+                  className={neutralButton}
+                >
+                  Trade this shift
+                </button>
+              ) : (
+                <div className="rounded-lg border border-zinc-800 bg-zinc-950 p-3">
+                  <label
+                    htmlFor="offeredShift"
+                    className="block text-xs font-medium text-zinc-400"
+                  >
+                    Which shift do you want in return?
+                  </label>
+                  <select
+                    id="offeredShift"
+                    value={offeredShiftId}
+                    onChange={(e) => setOfferedShiftId(e.target.value)}
+                    className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-1.5 text-sm text-zinc-100 outline-none focus:border-blue-500"
+                  >
+                    <option value="">Select a shift…</option>
+                    {tradeableShifts.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.employee_name} · {s.date} · {formatTime(s.start_time)}–
+                        {formatTime(s.end_time)}
+                      </option>
+                    ))}
+                  </select>
+
+                  {tradeableShifts.length === 0 && (
+                    <p className="mt-2 text-xs text-zinc-500">
+                      No other member&apos;s shifts are available this week.
+                    </p>
+                  )}
+
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      type="button"
+                      disabled={busy || !offeredShiftId}
+                      onClick={() => createSwap('trade', offeredShiftId)}
+                      className={positiveButton}
+                    >
+                      Propose trade
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => setTradeOpen(false)}
+                      className={neutralButton}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {swap?.type === 'drop' && swap.status === 'open' && !isRequester && (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => swapAction('claim')}
+              className={positiveButton}
+            >
+              Claim this shift
+            </button>
+          )}
+
+          {offeredToMe && (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => swapAction('accept')}
+              className={positiveButton}
+            >
+              Accept trade
+            </button>
+          )}
+
+          {isTeamLead && swap?.status === 'pending_approval' && (
+            <div className="flex gap-2">
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => swapAction('approve')}
+                className={positiveButton}
+              >
+                Approve
+              </button>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => swapAction('reject')}
+                className={destructiveButton}
+              >
+                Reject
+              </button>
+            </div>
+          )}
+
+          {isRequester && swap?.status === 'open' && (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => swapAction('cancel')}
+              className={destructiveButton}
+            >
+              Cancel request
+            </button>
+          )}
+        </div>
       </aside>
     </div>
   );

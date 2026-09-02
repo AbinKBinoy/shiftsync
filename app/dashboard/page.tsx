@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server';
 import SignOutButton from '@/components/auth/SignOutButton';
 import InviteCode from '@/components/dashboard/InviteCode';
 import CalendarGrid from '@/components/dashboard/CalendarGrid';
+import SwapSidebar from '@/components/dashboard/SwapSidebar';
+import DashboardData from '@/components/dashboard/DashboardData';
 import type { Department, Profile, UserRole } from '@/types';
 
 type MembershipRow = {
@@ -86,7 +88,17 @@ export default async function DashboardPage() {
           </div>
         </section>
 
-        <CalendarGrid departmentId={department.id} currentUserId={user.id} />
+        <DashboardData
+          departmentId={department.id}
+          currentUserId={user.id}
+          isTeamLead={
+            memberships.find((m) => m.departments?.id === department.id)?.role ===
+            'team_lead'
+          }
+        >
+          <CalendarGrid />
+          <SwapSidebar />
+        </DashboardData>
 
         <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 shadow-xl">
           <h2 className="text-sm font-medium text-zinc-300">

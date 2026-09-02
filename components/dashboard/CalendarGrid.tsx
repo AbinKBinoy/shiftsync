@@ -1,8 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import ShiftCard from './ShiftCard';
-import ShiftDetailPanel from './ShiftDetailPanel';
+import { useDashboard } from './DashboardData';
 import {
   WEEKDAY_LABELS,
   addDays,
@@ -14,66 +14,18 @@ import {
 } from '@/lib/dates';
 import type { Shift } from '@/types';
 
-type CalendarGridProps = {
-  departmentId: string;
-  currentUserId: string;
-};
-
-export default function CalendarGrid({
-  departmentId,
-  currentUserId,
-}: CalendarGridProps) {
-  const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
-  const [selected, setSelected] = useState<Shift | null>(null);
+export default function CalendarGrid() {
+  const {
+    weekStart,
+    setWeekStart,
+    shifts,
+    shiftsLoading,
+    shiftsError,
+    currentUserId,
+    openShift,
+  } = useDashboard();
 
   const days = useMemo(() => weekDays(weekStart), [weekStart]);
-  const startDate = toISODate(weekStart);
-  const endDate = toISODate(addDays(weekStart, 6));
-
-  // Results are stamped with the request they answered, so loading and errors
-  // derive from state rather than needing a setState inside the effect body.
-  const requestKey = `${departmentId}|${startDate}|${endDate}`;
-  const [result, setResult] = useState<{
-    key: string;
-    shifts: Shift[];
-    error: string | null;
-  } | null>(null);
-
-  const settled = result?.key === requestKey ? result : null;
-  const loading = settled === null;
-  const shifts = useMemo(() => settled?.shifts ?? [], [settled]);
-  const error = settled?.error ?? null;
-
-  useEffect(() => {
-    let active = true;
-
-    const params = new URLSearchParams({
-      department_id: departmentId,
-      start_date: startDate,
-      end_date: endDate,
-    });
-
-    fetch(`/api/shifts?${params}`)
-      .then(async (res) => {
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? 'Could not load shifts');
-        return data;
-      })
-      .then((data) => {
-        if (active) {
-          setResult({ key: requestKey, shifts: data.shifts ?? [], error: null });
-        }
-      })
-      .catch((err: Error) => {
-        if (active) {
-          setResult({ key: requestKey, shifts: [], error: err.message });
-        }
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [departmentId, startDate, endDate, requestKey]);
 
   // Bucket the week's shifts by date once, rather than filtering per column.
   const shiftsByDate = useMemo(() => {
@@ -86,10 +38,6 @@ export default function CalendarGrid({
     return map;
   }, [shifts]);
 
-  const goToWeek = useCallback((offset: number) => {
-    setWeekStart((current) => addDays(current, offset * 7));
-  }, []);
-
   const today = new Date();
 
   return (
@@ -100,7 +48,7 @@ export default function CalendarGrid({
             {formatWeekRange(weekStart)}
           </h2>
           <p className="mt-0.5 text-xs text-zinc-500">
-            {loading
+            {shiftsLoading
               ? 'Loading shifts…'
               : `${shifts.length} shift${shifts.length === 1 ? '' : 's'} this week`}
           </p>
@@ -109,7 +57,7 @@ export default function CalendarGrid({
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => goToWeek(-1)}
+            onClick={() => setWeekStart(addDays(weekStart, -7))}
             className="rounded-lg border border-zinc-700 px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:border-zinc-600 hover:text-zinc-50"
           >
             Previous Week
@@ -123,7 +71,7 @@ export default function CalendarGrid({
           </button>
           <button
             type="button"
-            onClick={() => goToWeek(1)}
+            onClick={() => setWeekStart(addDays(weekStart, 7))}
             className="rounded-lg border border-zinc-700 px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:border-zinc-600 hover:text-zinc-50"
           >
             Next Week
@@ -131,12 +79,12 @@ export default function CalendarGrid({
         </div>
       </div>
 
-      {error && (
+      {shiftsError && (
         <p
           role="alert"
           className="mt-4 rounded-lg border border-red-900 bg-red-950 px-3 py-2 text-sm text-red-300"
         >
-          {error}
+          {shiftsError}
         </p>
       )}
 
@@ -172,7 +120,7 @@ export default function CalendarGrid({
                 <div className="flex flex-1 flex-col gap-1.5">
                   {dayShifts.length === 0 ? (
                     <p className="mt-2 text-center text-xs text-zinc-700">
-                      {loading ? '' : 'No shifts'}
+                      {shiftsLoading ? '' : 'No shifts'}
                     </p>
                   ) : (
                     dayShifts.map((shift) => (
@@ -180,7 +128,7 @@ export default function CalendarGrid({
                         key={shift.id}
                         shift={shift}
                         currentUserId={currentUserId}
-                        onClick={setSelected}
+                        onClick={openShift}
                       />
                     ))
                   )}
@@ -190,12 +138,6 @@ export default function CalendarGrid({
           })}
         </div>
       </div>
-
-      <ShiftDetailPanel
-        shift={selected}
-        currentUserId={currentUserId}
-        onClose={() => setSelected(null)}
-      />
     </section>
   );
 }
