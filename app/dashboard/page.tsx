@@ -56,6 +56,10 @@ export default async function DashboardPage() {
 
   const members = (memberData ?? []) as unknown as MemberRow[];
 
+  const isTeamLead =
+    memberships.find((m) => m.departments?.id === department.id)?.role ===
+    'team_lead';
+
   return (
     <div className="min-h-screen bg-zinc-950 px-4 py-12">
       <div className="mx-auto w-full max-w-6xl space-y-6">
@@ -92,16 +96,13 @@ export default async function DashboardPage() {
         <DashboardData
           departmentId={department.id}
           currentUserId={user.id}
-          isTeamLead={
-            memberships.find((m) => m.departments?.id === department.id)?.role ===
-            'team_lead'
-          }
+          isTeamLead={isTeamLead}
         >
           <NameLinker
+            isTeamLead={isTeamLead}
             members={members.map((m) => ({
               user_id: m.user_id,
-              name: m.profiles?.full_name?.trim() || m.profiles?.email || 'Member',
-              email: m.profiles?.email ?? '',
+              name: m.profiles?.full_name?.trim() || 'Unnamed member',
             }))}
           />
           <CalendarGrid />

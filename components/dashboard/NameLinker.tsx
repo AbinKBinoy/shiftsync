@@ -4,13 +4,19 @@ import { useEffect, useMemo, useState } from 'react';
 import { useDashboard } from './DashboardData';
 import type { Shift } from '@/types';
 
+// Deliberately no email field — member addresses must not reach this component.
 export type LinkableMember = {
   user_id: string;
   name: string;
-  email: string;
 };
 
-export default function NameLinker({ members }: { members: LinkableMember[] }) {
+export default function NameLinker({
+  members,
+  isTeamLead,
+}: {
+  members: LinkableMember[];
+  isTeamLead: boolean;
+}) {
   const { departmentId, refresh } = useDashboard();
 
   const [reloadToken, setReloadToken] = useState(0);
@@ -27,6 +33,7 @@ export default function NameLinker({ members }: { members: LinkableMember[] }) {
   );
 
   useEffect(() => {
+    if (!isTeamLead) return;
     let active = true;
 
     fetch(`/api/shifts?department_id=${departmentId}`)
@@ -41,19 +48,21 @@ export default function NameLinker({ members }: { members: LinkableMember[] }) {
     return () => {
       active = false;
     };
-  }, [departmentId, requestKey]);
+  }, [departmentId, requestKey, isTeamLead]);
 
   const settled = loaded?.key === requestKey ? loaded : null;
   const allShifts = useMemo(() => settled?.shifts ?? [], [settled]);
 
-  const { unlinkedNames, linkedNames } = useMemo(() => {
+  const { unlinkedNames, totalNames } = useMemo(() => {
+    const allNames = new Set<string>();
     const unlinked = new Map<string, number>();
-    const linked = new Set<string>();
 
     for (const shift of allShifts) {
-      if (shift.user_id) {
-        linked.add(shift.employee_name);
-      } else {
+      allNames.add(shift.employee_name);
+
+      // Only names that still have an unlinked shift belong in the list; a name
+      // can appear in both states, so count shifts rather than names here.
+      if (!shift.user_id) {
         unlinked.set(
           shift.employee_name,
           (unlinked.get(shift.employee_name) ?? 0) + 1
@@ -65,7 +74,7 @@ export default function NameLinker({ members }: { members: LinkableMember[] }) {
       unlinkedNames: [...unlinked.entries()].sort((a, b) =>
         a[0].localeCompare(b[0])
       ),
-      linkedNames: linked,
+      totalNames: allNames.size,
     };
   }, [allShifts]);
 
@@ -107,11 +116,13 @@ export default function NameLinker({ members }: { members: LinkableMember[] }) {
     }
   }
 
-  // Nothing to do once every name has an account.
-  if (settled && unlinkedNames.length === 0) return null;
+  // Linking is a team lead tool, and there's nothing to do once every name has
+  // an account.
+  if (!isTeamLead) return null;
   if (!settled) return null;
+  if (unlinkedNames.length === 0) return null;
 
-  const totalNames = unlinkedNames.length + linkedNames.size;
+  const linkedCount = totalNames - unlinkedNames.length;
   const selectedCount = Object.values(assignments).filter(Boolean).length;
 
   return (
@@ -119,7 +130,7 @@ export default function NameLinker({ members }: { members: LinkableMember[] }) {
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-sm font-medium text-zinc-300">Link names to accounts</h2>
         <span className="text-xs text-zinc-500">
-          {linkedNames.size} of {totalNames} names linked
+          {linkedCount} of {totalNames} names linked
         </span>
       </div>
 
@@ -152,7 +163,7 @@ export default function NameLinker({ members }: { members: LinkableMember[] }) {
               <option value="">Not linked</option>
               {members.map((m) => (
                 <option key={m.user_id} value={m.user_id}>
-                  {m.name} ({m.email})
+                  {m.name}
                 </option>
               ))}
             </select>

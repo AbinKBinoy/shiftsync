@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
 
   const { data: membership } = await supabase
     .from('department_members')
-    .select('id')
+    .select('id, role')
     .eq('department_id', departmentId)
     .eq('user_id', user.id)
     .maybeSingle();
@@ -47,6 +47,14 @@ export async function POST(request: NextRequest) {
   if (!membership) {
     return NextResponse.json(
       { error: 'You are not a member of this department' },
+      { status: 403 }
+    );
+  }
+
+  // Linking decides who owns a shift, so it stays with the team lead.
+  if (membership.role !== 'team_lead') {
+    return NextResponse.json(
+      { error: 'Only team leads can link names to accounts' },
       { status: 403 }
     );
   }
