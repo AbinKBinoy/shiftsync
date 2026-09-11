@@ -35,12 +35,21 @@ export default function CalendarSync() {
 
   if (failed || !token || !host) return null;
 
+  const feedPath = `/api/calendar/${token}/feed.ics`;
+
   // webcal:// makes the OS hand the feed to whichever calendar app is installed.
-  const webcalUrl = `webcal://${host}/api/calendar/${token}/feed.ics`;
+  const webcalUrl = `webcal://${host}${feedPath}`;
+
+  // Google fetches the feed from its own servers, so it needs a real https URL.
+  const httpsUrl = `https://${host}${feedPath}`;
+  const googleUrl = `https://calendar.google.com/calendar/render?cid=${encodeURIComponent(
+    httpsUrl
+  )}`;
 
   async function copyLink() {
     try {
-      await navigator.clipboard.writeText(webcalUrl);
+      // The https form pastes cleanly into any calendar app's "subscribe" box.
+      await navigator.clipboard.writeText(httpsUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -56,12 +65,20 @@ export default function CalendarSync() {
         re-download.
       </p>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3">
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <a
+          href={googleUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-200 transition-colors hover:border-zinc-600 hover:text-zinc-50"
+        >
+          Add to Google Calendar
+        </a>
         <a
           href={webcalUrl}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500"
+          className="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-200 transition-colors hover:border-zinc-600 hover:text-zinc-50"
         >
-          Add to calendar
+          Add to Apple/Outlook Calendar
         </a>
         <button
           type="button"
@@ -71,6 +88,11 @@ export default function CalendarSync() {
           {copied ? 'Copied' : 'Copy link'}
         </button>
       </div>
+
+      <p className="mt-2 text-xs text-zinc-600">
+        Won&apos;t work until this app is deployed — localhost isn&apos;t
+        reachable from Google&apos;s servers.
+      </p>
 
       <p className="mt-3 text-xs text-zinc-600">
         Keep this link private — anyone who has it can see your shifts.
