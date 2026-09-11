@@ -34,10 +34,12 @@ export function ownsShift(
   return onShift.length > 0 && onShift === onProfile;
 }
 
+// Never falls back to email: this value is written into shifts.employee_name,
+// which every member of the department can see on the calendar.
 export function displayName(
-  profile: { full_name?: string | null; email?: string | null } | null
+  profile: { full_name?: string | null } | null
 ): string {
-  return profile?.full_name?.trim() || profile?.email || 'Unknown';
+  return profile?.full_name?.trim() || 'Unnamed member';
 }
 
 export type ActionContext = {

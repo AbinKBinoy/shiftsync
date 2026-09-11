@@ -47,5 +47,9 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
+  // `api/calendar` is excluded on purpose: calendar apps subscribe without a
+  // session, so that route authenticates by token instead of cookie.
+  matcher: [
+    '/((?!api/calendar|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 };

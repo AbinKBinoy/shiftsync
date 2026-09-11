@@ -7,6 +7,7 @@ import CalendarGrid from '@/components/dashboard/CalendarGrid';
 import SwapSidebar from '@/components/dashboard/SwapSidebar';
 import DashboardData from '@/components/dashboard/DashboardData';
 import NameLinker from '@/components/dashboard/NameLinker';
+import CalendarSync from '@/components/dashboard/CalendarSync';
 import type { Department, Profile, UserRole } from '@/types';
 
 type MembershipRow = {
@@ -92,6 +93,8 @@ export default async function DashboardPage() {
             <InviteCode code={department.invite_code} />
           </div>
         </section>
+
+        <CalendarSync />
 
         <DashboardData
           departmentId={department.id}
