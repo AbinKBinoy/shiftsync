@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import type { SVGProps } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import type { SVGProps, TouchEvent } from 'react';
 import ShiftCard from './ShiftCard';
 import { useDashboard } from './DashboardData';
 import {
@@ -10,11 +10,17 @@ import {
   formatDayHeading,
   formatWeekRange,
   isSameDay,
+  parseISODate,
   startOfWeek,
   toISODate,
   weekDays,
 } from '@/lib/dates';
 import type { Shift } from '@/types';
+
+// Swipes shorter than this (in px) are treated as taps/scroll jitter, not a
+// day change. Also requires the horizontal move to dominate the vertical one,
+// so a vertical scroll inside the list never gets misread as a swipe.
+const SWIPE_THRESHOLD_PX = 50;
 
 function ChevronLeftIcon(props: SVGProps<SVGSVGElement>) {
   return (
@@ -47,6 +53,7 @@ export default function CalendarGrid() {
   // (which only tracks the fetched 7-day window) so day-by-day browsing can
   // land anywhere inside that window without a separate week concept.
   const [selectedDate, setSelectedDate] = useState(() => new Date());
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const days = useMemo(() => weekDays(weekStart), [weekStart]);
 
@@ -85,6 +92,32 @@ export default function CalendarGrid() {
     if (toISODate(nextWeekStart) !== toISODate(weekStart)) {
       setWeekStart(nextWeekStart);
     }
+  }
+
+  function handleDatePicked(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!e.target.value) return;
+    goToDay(parseISODate(e.target.value));
+  }
+
+  function handleTouchStart(e: TouchEvent<HTMLDivElement>) {
+    const touch = e.touches[0];
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+  }
+
+  function handleTouchEnd(e: TouchEvent<HTMLDivElement>) {
+    const start = touchStartRef.current;
+    touchStartRef.current = null;
+    if (!start) return;
+
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - start.x;
+    const deltaY = touch.clientY - start.y;
+
+    if (Math.abs(deltaX) < SWIPE_THRESHOLD_PX || Math.abs(deltaX) < Math.abs(deltaY)) {
+      return;
+    }
+
+    goToDay(addDays(selectedDate, deltaX < 0 ? 1 : -1));
   }
 
   const selectedIso = toISODate(selectedDate);
@@ -144,9 +177,22 @@ export default function CalendarGrid() {
           </button>
 
           <div className="min-w-0 text-center">
-            <p className="truncate text-sm font-medium text-zinc-100">
-              {formatDayHeading(selectedDate)}
-            </p>
+            <div className="relative inline-block">
+              <p className="truncate text-sm font-medium text-zinc-100">
+                {formatDayHeading(selectedDate)}
+              </p>
+              {/* Invisible native date input sized to sit exactly over the
+                  label above — tapping the label opens the OS date picker.
+                  A hidden input can't reliably be opened programmatically
+                  across browsers, so the input itself IS the tap target. */}
+              <input
+                type="date"
+                value={selectedIso}
+                onChange={handleDatePicked}
+                aria-label="Jump to a specific date"
+                className="absolute inset-0 cursor-pointer opacity-0"
+              />
+            </div>
             {!isSelectedToday && (
               <button
                 type="button"
@@ -236,8 +282,12 @@ export default function CalendarGrid() {
         </div>
       </div>
 
-      {/* Mobile single-day list */}
-      <div className="mt-5 md:hidden">
+      {/* Mobile single-day list — swipe left/right to change day */}
+      <div
+        className="mt-5 md:hidden"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         <div className="flex flex-col gap-2">
           {selectedDayShifts.length === 0 ? (
             <p className="rounded-lg border border-zinc-800 bg-zinc-950/60 py-8 text-center text-sm text-zinc-600">
