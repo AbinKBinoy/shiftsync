@@ -49,9 +49,11 @@ export default async function DashboardPage() {
     redirect('/department');
   }
 
+  // Deliberately no email field — member addresses must not reach this page,
+  // same pattern as NameLinker.
   const { data: memberData } = await supabase
     .from('department_members')
-    .select('id, role, joined_at, user_id, profiles(id, email, full_name, avatar_url, created_at)')
+    .select('id, role, joined_at, user_id, profiles(id, full_name, avatar_url, created_at)')
     .eq('department_id', department.id)
     .order('joined_at', { ascending: true });
 
@@ -128,18 +130,11 @@ export default async function DashboardPage() {
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-zinc-100">
-                      {member.profiles?.full_name?.trim() ||
-                        member.profiles?.email ||
-                        'Unknown member'}
+                      {member.profiles?.full_name?.trim() || 'Unnamed member'}
                       {member.user_id === user.id && (
                         <span className="ml-2 text-xs text-zinc-500">(you)</span>
                       )}
                     </p>
-                    {member.profiles?.email && (
-                      <p className="truncate text-xs text-zinc-500">
-                        {member.profiles.email}
-                      </p>
-                    )}
                   </div>
                   <span
                     className={

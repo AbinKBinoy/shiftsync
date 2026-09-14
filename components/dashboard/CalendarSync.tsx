@@ -42,8 +42,11 @@ export default function CalendarSync() {
 
   // Google fetches the feed from its own servers, so it needs a real https URL.
   const httpsUrl = `https://${host}${feedPath}`;
+  // Google's "render?cid=" add-by-URL flow rejects an https:// cid outright
+  // ("Unable to subscribe to calendar. Check the URL.") — it only accepts the
+  // webcal:// scheme, even though the feed itself is served over https.
   const googleUrl = `https://calendar.google.com/calendar/render?cid=${encodeURIComponent(
-    httpsUrl
+    webcalUrl
   )}`;
 
   async function copyLink() {

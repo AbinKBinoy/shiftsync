@@ -129,6 +129,12 @@ export async function loadSwapContext(
 
 // Moves the shifts once a swap is actually approved. Drop hands the original
 // shift to the responder; trade exchanges the two shifts between both parties.
+//
+// Both parties must resolve to a real profiles row before anything is written.
+// A profile can be missing if a signup's profile-creation trigger never fired,
+// leaving a real auth user with no profiles record — if we pressed on with a
+// missing profile, that shift's true owner would never be identifiable, and
+// nothing would move that side of the trade.
 export async function applySwapOutcome(
   admin: SupabaseClient,
   swap: ActionContext['swap']
@@ -139,11 +145,9 @@ export async function applySwapOutcome(
     .eq('id', swap.responder_id)
     .maybeSingle();
 
-  const { data: requesterProfile } = await admin
-    .from('profiles')
-    .select('id, email, full_name')
-    .eq('id', swap.requester_id)
-    .maybeSingle();
+  if (!responderProfile) {
+    return 'The account accepting this swap has no profile yet. Ask them to sign in again, then retry.';
+  }
 
   if (swap.type === 'drop') {
     const { error } = await admin
@@ -161,6 +165,27 @@ export async function applySwapOutcome(
   if (!swap.offered_shift_id) {
     return 'This trade has no offered shift to exchange.';
   }
+
+  const { data: requesterProfile } = await admin
+    .from('profiles')
+    .select('id, email, full_name')
+    .eq('id', swap.requester_id)
+    .maybeSingle();
+
+  if (!requesterProfile) {
+    return 'The account that made this request has no profile yet. Ask them to sign in again, then retry.';
+  }
+
+  // Snapshot the original shift so a failed second write can be undone rather
+  // than leaving the responder holding both shifts while the requester ends up
+  // with neither — the swap_requests row is already marked 'approved' by the
+  // caller before this runs, so a half-applied trade would otherwise look
+  // finished while one party's shift was silently duplicated onto the other.
+  const { data: originalBefore } = await admin
+    .from('shifts')
+    .select('user_id, employee_name, status')
+    .eq('id', swap.original_shift_id)
+    .maybeSingle();
 
   // Trade: each shift moves to the other party.
   const { error: originalError } = await admin
@@ -183,7 +208,17 @@ export async function applySwapOutcome(
     })
     .eq('id', swap.offered_shift_id);
 
-  return offeredError ? offeredError.message : null;
+  if (offeredError) {
+    if (originalBefore) {
+      await admin
+        .from('shifts')
+        .update(originalBefore)
+        .eq('id', swap.original_shift_id);
+    }
+    return offeredError.message;
+  }
+
+  return null;
 }
 
 // Puts a shift back the way it was when a swap is rejected or cancelled.
