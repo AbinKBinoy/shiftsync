@@ -10,6 +10,19 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* ShiftSync brand palette — deep navy base, warm yellow accent. */
+  --color-navy-950: #0b1220;
+  --color-navy-900: #111a2e;
+  --color-navy-800: #172238;
+  --color-navy-700: #22314d;
+  --color-navy-600: #34456b;
+  --color-ink-100: #f5f7fa;
+  --color-ink-300: #c4ccda;
+  --color-ink-500: #8b96ac;
+  --color-yellow-300: #ffde47;
+  --color-yellow-400: #ffd100;
+  --color-yellow-500: #e6bc00;
 }
 
 @media (prefers-color-scheme: dark) {

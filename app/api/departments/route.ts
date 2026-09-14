@@ -87,7 +87,10 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ department }, { status: 201 });
 }
 
-// GET /api/departments — list the departments the current user belongs to.
+// GET /api/departments — list the departments the current user belongs to
+// When it receives a GET request (listing departments), 
+// it queries department_members for the current user 
+// and joins with the departments table to get the department details back..
 export async function GET() {
   const supabase = await createClient();
   const {
