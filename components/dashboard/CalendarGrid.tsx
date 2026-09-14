@@ -38,6 +38,15 @@ function ChevronRightIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+function CalendarIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} {...props}>
+      <rect x="3" y="5" width="18" height="16" rx="2" />
+      <path d="M3 10h18M8 3v4M16 3v4" />
+    </svg>
+  );
+}
+
 export default function CalendarGrid() {
   const {
     weekStart,
@@ -177,14 +186,15 @@ export default function CalendarGrid() {
           </button>
 
           <div className="min-w-0 text-center">
-            <div className="relative inline-block">
+            <div className="relative inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 px-3 py-1.5">
+              <CalendarIcon className="h-3.5 w-3.5 shrink-0 text-zinc-400" />
               <p className="truncate text-sm font-medium text-zinc-100">
                 {formatDayHeading(selectedDate)}
               </p>
               {/* Invisible native date input sized to sit exactly over the
-                  label above — tapping the label opens the OS date picker.
-                  A hidden input can't reliably be opened programmatically
-                  across browsers, so the input itself IS the tap target. */}
+                  pill above — tapping it opens the OS date picker. A hidden
+                  input can't reliably be opened programmatically across
+                  browsers, so the input itself IS the tap target. */}
               <input
                 type="date"
                 value={selectedIso}
@@ -197,7 +207,7 @@ export default function CalendarGrid() {
               <button
                 type="button"
                 onClick={goToday}
-                className="text-xs font-medium text-blue-400 hover:text-blue-300"
+                className="mt-1 block text-xs font-medium text-blue-400 hover:text-blue-300"
               >
                 Jump to today
               </button>
