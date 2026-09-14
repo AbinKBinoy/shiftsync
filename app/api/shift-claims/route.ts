@@ -2,6 +2,10 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { CLAIM_SELECT } from '@/lib/shiftClaims';
+import { sendShiftClaimNotification } from '@/lib/email';
+import type { ShiftClaim } from '@/types';
+
+type TeamLeadRow = { profiles: { email: string | null } | null };
 
 // POST /api/shift-claims — a member asks to be linked to shifts under a name
 // read off the schedule photo. Anyone in the department can request; only a
@@ -84,7 +88,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: insertError.message }, { status: 500 });
   }
 
-  const { data: claim, error } = await admin
+  const { data: claimData, error } = await admin
     .from('shift_claims')
     .select(CLAIM_SELECT)
     .eq('id', inserted.id)
@@ -92,6 +96,36 @@ export async function POST(request: NextRequest) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // CLAIM_SELECT is a plain string, so supabase-js can't infer the joined
+  // requester/resolver shape from it — cast to the app-level type instead.
+  const claim = claimData as unknown as ShiftClaim;
+
+  // Best-effort notification — the claim above already succeeded and is
+  // returned regardless of whether this email goes out.
+  try {
+    const [{ data: department }, { data: leadRows }] = await Promise.all([
+      admin.from('departments').select('name').eq('id', departmentId).maybeSingle(),
+      admin
+        .from('department_members')
+        .select('profiles(email)')
+        .eq('department_id', departmentId)
+        .eq('role', 'team_lead'),
+    ]);
+
+    const teamLeadEmails = ((leadRows ?? []) as unknown as TeamLeadRow[])
+      .map((row) => row.profiles?.email)
+      .filter((email): email is string => Boolean(email));
+
+    await sendShiftClaimNotification({
+      teamLeadEmails,
+      departmentName: department?.name ?? 'your department',
+      employeeName,
+      requesterName: claim.requester?.full_name?.trim() || 'Unnamed member',
+    });
+  } catch (err) {
+    console.error('Failed to send shift claim notification email:', err);
   }
 
   return NextResponse.json({ claim }, { status: 201 });

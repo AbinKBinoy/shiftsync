@@ -54,10 +54,11 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
 EXTRACTION_SERVICE_URL=https://shiftsync-extraction-production.up.railway.app
+RESEND_API_KEY=re_...
 ```
 
 - NEXT_PUBLIC_ prefix = visible to the browser (safe for Supabase anon key, security comes from RLS)
-- No prefix = server-only (SUPABASE_SERVICE_ROLE_KEY bypasses RLS, EXTRACTION_SERVICE_URL is called from API routes)
+- No prefix = server-only (SUPABASE_SERVICE_ROLE_KEY bypasses RLS, EXTRACTION_SERVICE_URL is called from API routes, RESEND_API_KEY sends transactional emails via lib/email.ts)
 
 ## File Structure
 
