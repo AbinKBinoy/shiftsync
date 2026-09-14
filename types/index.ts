@@ -18,6 +18,7 @@ export type NotificationType =
   | 'schedule_published'
   | 'comment';
 export type NotificationTargetType = 'shift' | 'swap_request' | 'schedule';
+export type ShiftClaimStatus = 'pending' | 'approved' | 'rejected';
 
 export interface Profile {
   id: string;
@@ -98,6 +99,19 @@ export interface Comment {
   content: string;
   created_at: string;
   profile?: Profile;
+}
+
+export interface ShiftClaim {
+  id: string;
+  department_id: string;
+  employee_name: string;
+  requested_by: string;
+  status: ShiftClaimStatus;
+  created_at: string;
+  resolved_at?: string;
+  resolved_by?: string;
+  requester?: Profile;
+  resolver?: Profile;
 }
 
 export interface Notification {

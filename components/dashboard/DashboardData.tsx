@@ -10,7 +10,7 @@ import {
 } from 'react';
 import ShiftDetailPanel from './ShiftDetailPanel';
 import { addDays, parseISODate, startOfWeek, toISODate } from '@/lib/dates';
-import type { Shift, SwapRequest } from '@/types';
+import type { Shift, ShiftClaim, SwapRequest } from '@/types';
 
 type DashboardValue = {
   departmentId: string;
@@ -23,6 +23,12 @@ type DashboardValue = {
   shiftsError: string | null;
   swaps: SwapRequest[];
   swapsLoading: boolean;
+  // Team leads get every claim in the department; regular members get only
+  // their own (the API enforces this, not just the client) — so this same
+  // list works both for the approval queue and for "do I already have a
+  // pending claim for this name" checks.
+  claims: ShiftClaim[];
+  claimsLoading: boolean;
   openShift: (shift: Shift) => void;
   refresh: () => void;
   swapForShift: (shiftId: string) => SwapRequest | null;
@@ -74,6 +80,12 @@ export default function DashboardData({
     swaps: SwapRequest[];
   } | null>(null);
 
+  const claimsKey = `${departmentId}|${token}`;
+  const [claimsResult, setClaimsResult] = useState<{
+    key: string;
+    claims: ShiftClaim[];
+  } | null>(null);
+
   useEffect(() => {
     let active = true;
     const params = new URLSearchParams({
@@ -121,11 +133,30 @@ export default function DashboardData({
     };
   }, [departmentId, swapsKey]);
 
+  useEffect(() => {
+    let active = true;
+
+    fetch(`/api/shift-claims?department_id=${departmentId}`)
+      .then(async (res) => (res.ok ? res.json() : { claims: [] }))
+      .then((data) => {
+        if (active) setClaimsResult({ key: claimsKey, claims: data.claims ?? [] });
+      })
+      .catch(() => {
+        if (active) setClaimsResult({ key: claimsKey, claims: [] });
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [departmentId, claimsKey]);
+
   const settledShifts = shiftsResult?.key === shiftsKey ? shiftsResult : null;
   const settledSwaps = swapsResult?.key === swapsKey ? swapsResult : null;
+  const settledClaims = claimsResult?.key === claimsKey ? claimsResult : null;
 
   const shifts = useMemo(() => settledShifts?.shifts ?? [], [settledShifts]);
   const swaps = useMemo(() => settledSwaps?.swaps ?? [], [settledSwaps]);
+  const claims = useMemo(() => settledClaims?.claims ?? [], [settledClaims]);
 
   const refresh = useCallback(() => setToken((t) => t + 1), []);
 
@@ -168,6 +199,8 @@ export default function DashboardData({
     shiftsError: settledShifts?.error ?? null,
     swaps,
     swapsLoading: settledSwaps === null,
+    claims,
+    claimsLoading: settledClaims === null,
     openShift,
     refresh,
     swapForShift,
