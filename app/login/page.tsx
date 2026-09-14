@@ -30,19 +30,19 @@ export default function LoginPage() {
     }
 
     // Send first-time users to create or join a department; everyone else
-    // straight to their dashboard.
+    // straight to their calendar.
     let destination = '/department';
     try {
       const res = await fetch('/api/departments');
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data.departments) && data.departments.length > 0) {
-          destination = '/dashboard';
+          destination = '/calendar';
         }
       }
     } catch {
-      // If the check fails, /dashboard redirects to /department when needed.
-      destination = '/dashboard';
+      // If the check fails, the (app) layout redirects to /department when needed.
+      destination = '/calendar';
     }
 
     router.push(destination);

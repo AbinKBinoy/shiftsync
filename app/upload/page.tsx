@@ -220,7 +220,7 @@ export default function UploadPage() {
         return;
       }
 
-      router.push('/dashboard');
+      router.push('/calendar');
       router.refresh();
     } catch {
       setError('Could not reach the server. Please try again.');
@@ -242,10 +242,10 @@ export default function UploadPage() {
             </p>
           </div>
           <Link
-            href="/dashboard"
+            href="/calendar"
             className="shrink-0 rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 transition-colors hover:border-zinc-600 hover:text-zinc-50"
           >
-            Back to dashboard
+            Back to calendar
           </Link>
         </div>
 

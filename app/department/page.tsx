@@ -81,8 +81,8 @@ export default function DepartmentPage() {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  function goToDashboard() {
-    router.push('/dashboard');
+  function goToCalendar() {
+    router.push('/calendar');
     router.refresh();
   }
 
@@ -124,10 +124,10 @@ export default function DepartmentPage() {
               </div>
               <button
                 type="button"
-                onClick={goToDashboard}
+                onClick={goToCalendar}
                 className={primaryButtonClass}
               >
-                Go to Dashboard
+                Go to Calendar
               </button>
             </div>
           ) : (
@@ -180,10 +180,10 @@ export default function DepartmentPage() {
               </p>
               <button
                 type="button"
-                onClick={goToDashboard}
+                onClick={goToCalendar}
                 className={primaryButtonClass}
               >
-                Go to Dashboard
+                Go to Calendar
               </button>
             </div>
           ) : (

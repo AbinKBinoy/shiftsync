@@ -12,7 +12,7 @@ import { createClient } from '@/lib/supabase/server';
 // the Supabase dashboard, Supabase silently swaps it for the project's Site
 // URL instead — no error, no warning. That drops our `?next=/reset-password`
 // entirely, the link lands back here with only `?code=...`, `next` falls
-// back to its '/dashboard' default, and a password-reset click quietly signs
+// back to its '/calendar' default, and a password-reset click quietly signs
 // the user straight into the app instead of prompting them to set a new
 // password. token_hash/type travel as plain query params on a link we build
 // ourselves in the "Reset Password" email template (using
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code');
   const tokenHash = searchParams.get('token_hash');
   const type = searchParams.get('type');
-  const next = searchParams.get('next') ?? '/dashboard';
+  const next = searchParams.get('next') ?? '/calendar';
 
   const supabase = await createClient();
 
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
   // nothing here to exchange. Forward to the requested page anyway (the
   // fragment carries over on redirect) and let the client-side page, which
   // can see the fragment, decide whether it ended up with a usable session.
-  if (next !== '/dashboard') {
+  if (next !== '/calendar') {
     return NextResponse.redirect(`${origin}${next}`);
   }
 
