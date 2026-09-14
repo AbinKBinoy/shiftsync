@@ -59,6 +59,15 @@ export function formatFullDate(value: string): string {
   });
 }
 
+// "Wednesday, August 19" — no year, for the mobile single-day calendar header.
+export function formatDayHeading(date: Date): string {
+  return date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
 // Postgres returns "08:00:00"; the grid only needs "08:00".
 export function formatTime(value: string): string {
   const match = /^(\d{2}:\d{2})/.exec(value ?? '');

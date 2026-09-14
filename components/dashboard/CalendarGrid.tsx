@@ -1,11 +1,13 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import type { SVGProps } from 'react';
 import ShiftCard from './ShiftCard';
 import { useDashboard } from './DashboardData';
 import {
   WEEKDAY_LABELS,
   addDays,
+  formatDayHeading,
   formatWeekRange,
   isSameDay,
   startOfWeek,
@@ -13,6 +15,22 @@ import {
   weekDays,
 } from '@/lib/dates';
 import type { Shift } from '@/types';
+
+function ChevronLeftIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} {...props}>
+      <path d="M15 6l-6 6 6 6" />
+    </svg>
+  );
+}
+
+function ChevronRightIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} {...props}>
+      <path d="M9 6l6 6-6 6" />
+    </svg>
+  );
+}
 
 export default function CalendarGrid() {
   const {
@@ -24,6 +42,11 @@ export default function CalendarGrid() {
     currentUserId,
     openShift,
   } = useDashboard();
+
+  // Which single day the mobile view is showing. Independent of weekStart
+  // (which only tracks the fetched 7-day window) so day-by-day browsing can
+  // land anywhere inside that window without a separate week concept.
+  const [selectedDate, setSelectedDate] = useState(() => new Date());
 
   const days = useMemo(() => weekDays(weekStart), [weekStart]);
 
@@ -40,9 +63,38 @@ export default function CalendarGrid() {
 
   const today = new Date();
 
+  // Desktop week nav also snaps the mobile day-view to that week's first day,
+  // so shrinking to mobile mid-session lands somewhere sensible.
+  function goToWeek(nextWeekStart: Date) {
+    setWeekStart(nextWeekStart);
+    setSelectedDate(nextWeekStart);
+  }
+
+  function goToday() {
+    const now = new Date();
+    setWeekStart(startOfWeek(now));
+    setSelectedDate(now);
+  }
+
+  // Crossing a week boundary on mobile pulls in the adjacent week's data
+  // automatically, so Previous/Next Day reads as continuous browsing rather
+  // than stopping dead at the edge of whatever week happens to be loaded.
+  function goToDay(nextDay: Date) {
+    setSelectedDate(nextDay);
+    const nextWeekStart = startOfWeek(nextDay);
+    if (toISODate(nextWeekStart) !== toISODate(weekStart)) {
+      setWeekStart(nextWeekStart);
+    }
+  }
+
+  const selectedIso = toISODate(selectedDate);
+  const selectedDayShifts = shiftsByDate.get(selectedIso) ?? [];
+  const isSelectedToday = isSameDay(selectedDate, today);
+
   return (
     <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 shadow-xl">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      {/* Desktop header + week nav — unchanged */}
+      <div className="hidden flex-wrap items-center justify-between gap-3 md:flex">
         <div>
           <h2 className="text-sm font-medium text-zinc-300">
             {formatWeekRange(weekStart)}
@@ -57,26 +109,70 @@ export default function CalendarGrid() {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => setWeekStart(addDays(weekStart, -7))}
+            onClick={() => goToWeek(addDays(weekStart, -7))}
             className="rounded-lg border border-zinc-700 px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:border-zinc-600 hover:text-zinc-50"
           >
             Previous Week
           </button>
           <button
             type="button"
-            onClick={() => setWeekStart(startOfWeek(new Date()))}
+            onClick={goToday}
             className="rounded-lg border border-zinc-700 px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:border-zinc-600 hover:text-zinc-50"
           >
             Today
           </button>
           <button
             type="button"
-            onClick={() => setWeekStart(addDays(weekStart, 7))}
+            onClick={() => goToWeek(addDays(weekStart, 7))}
             className="rounded-lg border border-zinc-700 px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:border-zinc-600 hover:text-zinc-50"
           >
             Next Week
           </button>
         </div>
+      </div>
+
+      {/* Mobile header + day nav */}
+      <div className="md:hidden">
+        <div className="flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={() => goToDay(addDays(selectedDate, -1))}
+            aria-label="Previous day"
+            className="shrink-0 rounded-lg border border-zinc-700 p-2 text-zinc-300 transition-colors hover:border-zinc-600 hover:text-zinc-50"
+          >
+            <ChevronLeftIcon className="h-4 w-4" />
+          </button>
+
+          <div className="min-w-0 text-center">
+            <p className="truncate text-sm font-medium text-zinc-100">
+              {formatDayHeading(selectedDate)}
+            </p>
+            {!isSelectedToday && (
+              <button
+                type="button"
+                onClick={goToday}
+                className="text-xs font-medium text-blue-400 hover:text-blue-300"
+              >
+                Jump to today
+              </button>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => goToDay(addDays(selectedDate, 1))}
+            aria-label="Next day"
+            className="shrink-0 rounded-lg border border-zinc-700 p-2 text-zinc-300 transition-colors hover:border-zinc-600 hover:text-zinc-50"
+          >
+            <ChevronRightIcon className="h-4 w-4" />
+          </button>
+        </div>
+
+        <p className="mt-2 text-center text-xs text-zinc-500">
+          {shiftsLoading
+            ? 'Loading shifts…'
+            : `${selectedDayShifts.length} shift${selectedDayShifts.length === 1 ? '' : 's'} today`}
+        </p>
       </div>
 
       {shiftsError && (
@@ -88,7 +184,8 @@ export default function CalendarGrid() {
         </p>
       )}
 
-      <div className="mt-5 overflow-x-auto">
+      {/* Desktop 7-column week grid — unchanged */}
+      <div className="mt-5 hidden overflow-x-auto md:block">
         <div className="grid min-w-[840px] grid-cols-7 gap-2">
           {days.map((day, index) => {
             const iso = toISODate(day);
@@ -136,6 +233,26 @@ export default function CalendarGrid() {
               </div>
             );
           })}
+        </div>
+      </div>
+
+      {/* Mobile single-day list */}
+      <div className="mt-5 md:hidden">
+        <div className="flex flex-col gap-2">
+          {selectedDayShifts.length === 0 ? (
+            <p className="rounded-lg border border-zinc-800 bg-zinc-950/60 py-8 text-center text-sm text-zinc-600">
+              {shiftsLoading ? 'Loading shifts…' : 'No shifts'}
+            </p>
+          ) : (
+            selectedDayShifts.map((shift) => (
+              <ShiftCard
+                key={shift.id}
+                shift={shift}
+                currentUserId={currentUserId}
+                onClick={openShift}
+              />
+            ))
+          )}
         </div>
       </div>
     </section>
