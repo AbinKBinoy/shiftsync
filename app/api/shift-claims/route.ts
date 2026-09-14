@@ -105,7 +105,10 @@ export async function POST(request: NextRequest) {
   // Best-effort notification — the claim above already succeeded and is
   // returned regardless of whether this email goes out.
   try {
-    const [{ data: department }, { data: leadRows }] = await Promise.all([
+    const [
+      { data: department, error: departmentError },
+      { data: leadRows, error: leadRowsError },
+    ] = await Promise.all([
       admin.from('departments').select('name').eq('id', departmentId).maybeSingle(),
       admin
         .from('department_members')
@@ -113,6 +116,22 @@ export async function POST(request: NextRequest) {
         .eq('department_id', departmentId)
         .eq('role', 'team_lead'),
     ]);
+
+    // Supabase-js resolves API-level failures as { error }, it doesn't throw
+    // — so without this, a failed lookup here would silently look identical
+    // to "no team leads found" and the catch block below would never fire.
+    if (departmentError) {
+      console.error(
+        'Failed to look up department name for shift claim notification:',
+        departmentError
+      );
+    }
+    if (leadRowsError) {
+      console.error(
+        'Failed to look up team lead emails for shift claim notification:',
+        leadRowsError
+      );
+    }
 
     const teamLeadEmails = ((leadRows ?? []) as unknown as TeamLeadRow[])
       .map((row) => row.profiles?.email)

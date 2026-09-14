@@ -37,11 +37,16 @@ export async function sendShiftClaimNotification({
   employeeName: string;
   requesterName: string;
 }): Promise<void> {
-  if (teamLeadEmails.length === 0) return;
+  if (teamLeadEmails.length === 0) {
+    console.warn(
+      'sendShiftClaimNotification: no team lead emails to notify — skipping send.'
+    );
+    return;
+  }
 
   const resend = getResendClient();
   if (!resend) {
-    console.warn(
+    console.error(
       'RESEND_API_KEY is not set — skipping shift claim notification email.'
     );
     return;
