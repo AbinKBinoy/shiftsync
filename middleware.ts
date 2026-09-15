@@ -29,7 +29,21 @@ export async function middleware(request: NextRequest) {
   // createServerClient and getUser().
   const {
     data: { user },
+    error,
   } = await supabase.auth.getUser();
+
+  const sbCookieNames = request.cookies
+    .getAll()
+    .filter((c) => c.name.startsWith('sb-'))
+    .map((c) => c.name);
+
+  console.error(
+    '[middleware]',
+    request.nextUrl.pathname,
+    'host:', request.headers.get('host'),
+    user ? `user found: ${user.id}` : `no user — getUser() error: ${error?.message ?? 'none'}`,
+    'sb- cookies seen:', sbCookieNames.length ? sbCookieNames.join(', ') : 'none'
+  );
 
   // Redirect unauthenticated users to login (except for the public landing
   // page and auth pages)
