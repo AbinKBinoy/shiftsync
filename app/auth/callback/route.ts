@@ -37,6 +37,8 @@ export async function GET(request: NextRequest) {
     if (!error) {
       return NextResponse.redirect(`${origin}${next}`);
     }
+
+    console.error('[auth/callback] verifyOtp failed:', error.message);
   }
 
   if (code) {
@@ -45,6 +47,8 @@ export async function GET(request: NextRequest) {
     if (!error) {
       return NextResponse.redirect(`${origin}${next}`);
     }
+
+    console.error('[auth/callback] exchangeCodeForSession failed:', error.message);
   }
 
   // A password-reset link's tokens can also arrive in the URL fragment
