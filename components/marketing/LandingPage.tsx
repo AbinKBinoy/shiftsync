@@ -241,7 +241,7 @@ export default function LandingPage() {
 
       <footer className="border-t border-navy-800">
         <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+          <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
             <div>
               <span className="text-base font-bold tracking-tight text-ink-100">
                 Shift<span className="text-yellow-400">Sync</span>
@@ -250,6 +250,16 @@ export default function LandingPage() {
                 AI-powered shift scheduling for frontline teams.
               </p>
             </div>
+
+            <nav className="flex items-center gap-5 text-sm text-ink-500">
+              <Link href="/privacy" className="transition-colors hover:text-ink-300">
+                Privacy Policy
+              </Link>
+              <Link href="/terms" className="transition-colors hover:text-ink-300">
+                Terms of Service
+              </Link>
+            </nav>
+
             <p className="text-sm text-ink-500">Built by {BUILDER_NAME}</p>
           </div>
         </div>
