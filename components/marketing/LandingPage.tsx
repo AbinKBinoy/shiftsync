@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import ScheduleMockup from './ScheduleMockup';
+import SiteHeader from './SiteHeader';
+import RevealOnScroll from './RevealOnScroll';
 import {
   UploadIcon,
   SparkleIcon,
@@ -70,32 +72,14 @@ const FEATURES: Feature[] = [
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-navy-950 text-ink-100">
-      <header className="sticky top-0 z-40 border-b border-navy-800 bg-navy-950/85 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
-          <span className="text-lg font-bold tracking-tight text-ink-100">
-            Shift<span className="text-yellow-400">Sync</span>
-          </span>
-
-          <nav className="flex items-center gap-2 sm:gap-3">
-            <Link
-              href="/login"
-              className="rounded-lg px-3 py-2 text-sm font-medium text-ink-300 transition-colors hover:text-ink-100 sm:px-4"
-            >
-              Log in
-            </Link>
-            <Link
-              href="/signup"
-              className="rounded-lg bg-yellow-400 px-3 py-2 text-sm font-semibold text-navy-950 transition-colors hover:bg-yellow-300 sm:px-4"
-            >
-              Sign up
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <SiteHeader />
 
       <main>
         {/* Hero */}
-        <section className="mx-auto max-w-6xl px-4 pt-14 pb-20 sm:px-6 sm:pt-20 sm:pb-28">
+        <section
+          id="hero"
+          className="mx-auto max-w-6xl px-4 pt-14 pb-20 sm:px-6 sm:pt-20 sm:pb-28"
+        >
           <div className="grid items-center gap-14 lg:grid-cols-2 lg:gap-10">
             <div>
               <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-ink-100 sm:text-5xl">
@@ -111,14 +95,14 @@ export default function LandingPage() {
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link
                   href="/signup"
-                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-yellow-400 px-6 py-3 text-sm font-semibold text-navy-950 shadow-lg shadow-yellow-400/10 transition-colors hover:bg-yellow-300"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-yellow-400 px-6 py-3 text-sm font-semibold text-navy-950 shadow-lg shadow-yellow-400/10 transition-all duration-150 hover:-translate-y-0.5 hover:bg-yellow-300 active:translate-y-0 active:scale-[0.97]"
                 >
                   Get Started Free
                   <ChevronRightIcon className="h-4 w-4" />
                 </Link>
                 <Link
                   href="/login"
-                  className="inline-flex items-center justify-center rounded-lg border border-navy-600 px-6 py-3 text-sm font-semibold text-ink-100 transition-colors hover:bg-navy-800"
+                  className="inline-flex items-center justify-center rounded-lg border border-navy-600 px-6 py-3 text-sm font-semibold text-ink-100 transition-all duration-150 hover:-translate-y-0.5 hover:bg-navy-800 active:translate-y-0 active:scale-[0.97]"
                 >
                   Log in
                 </Link>
@@ -136,20 +120,20 @@ export default function LandingPage() {
         {/* How it works */}
         <section id="how-it-works" className="border-t border-navy-800 bg-navy-900/40">
           <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-            <div className="max-w-2xl">
+            <RevealOnScroll className="max-w-2xl">
               <h2 className="text-sm font-semibold uppercase tracking-wider text-yellow-400">
                 How it works
               </h2>
               <p className="mt-3 text-3xl font-bold tracking-tight text-ink-100 sm:text-4xl">
                 From a photo on a wall to a schedule everyone can trust
               </p>
-            </div>
+            </RevealOnScroll>
 
             <div className="mt-14 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
               {STEPS.map((step, i) => {
                 const Icon = step.icon;
                 return (
-                  <div key={step.title} className="relative">
+                  <RevealOnScroll key={step.title} delayMs={i * 80} className="relative">
                     {i < STEPS.length - 1 && (
                       <div
                         className="pointer-events-none absolute top-6 left-full hidden w-8 border-t border-dashed border-navy-600 lg:block"
@@ -170,7 +154,7 @@ export default function LandingPage() {
                     <p className="mt-2 text-sm leading-relaxed text-ink-300">
                       {step.body}
                     </p>
-                  </div>
+                  </RevealOnScroll>
                 );
               })}
             </div>
@@ -180,39 +164,40 @@ export default function LandingPage() {
         {/* Features */}
         <section id="features" className="border-t border-navy-800">
           <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-            <div className="max-w-2xl">
+            <RevealOnScroll className="max-w-2xl">
               <h2 className="text-sm font-semibold uppercase tracking-wider text-yellow-400">
                 Features
               </h2>
               <p className="mt-3 text-3xl font-bold tracking-tight text-ink-100 sm:text-4xl">
                 Everything a team needs to run a schedule without the busywork
               </p>
-            </div>
+            </RevealOnScroll>
 
             <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {FEATURES.map((feature) => {
+              {FEATURES.map((feature, i) => {
                 const Icon = feature.icon;
                 return (
-                  <div
+                  <RevealOnScroll
                     key={feature.title}
-                    className={`rounded-2xl border border-navy-700 bg-navy-900 p-7 ${
-                      feature.featured ? 'sm:col-span-2 sm:p-9' : ''
-                    }`}
+                    delayMs={i * 80}
+                    className={feature.featured ? 'sm:col-span-2' : ''}
                   >
-                    <span className="flex h-11 w-11 items-center justify-center rounded-lg border border-navy-700 bg-navy-800 text-yellow-400">
-                      <Icon className="h-5 w-5" />
-                    </span>
-                    <h3 className="mt-5 text-xl font-semibold text-ink-100">
-                      {feature.title}
-                    </h3>
-                    <p
-                      className={`mt-2 text-sm leading-relaxed text-ink-300 ${
-                        feature.featured ? 'max-w-2xl' : ''
-                      }`}
-                    >
-                      {feature.body}
-                    </p>
-                  </div>
+                    <div className="h-full rounded-2xl border border-navy-700 bg-navy-900 p-7 transition-all duration-200 hover:-translate-y-1 hover:border-navy-600 hover:shadow-lg hover:shadow-black/20 sm:p-9">
+                      <span className="flex h-11 w-11 items-center justify-center rounded-lg border border-navy-700 bg-navy-800 text-yellow-400">
+                        <Icon className="h-5 w-5" />
+                      </span>
+                      <h3 className="mt-5 text-xl font-semibold text-ink-100">
+                        {feature.title}
+                      </h3>
+                      <p
+                        className={`mt-2 text-sm leading-relaxed text-ink-300 ${
+                          feature.featured ? 'max-w-2xl' : ''
+                        }`}
+                      >
+                        {feature.body}
+                      </p>
+                    </div>
+                  </RevealOnScroll>
                 );
               })}
             </div>
@@ -222,19 +207,21 @@ export default function LandingPage() {
         {/* Closing CTA */}
         <section className="border-t border-navy-800 bg-navy-900/40">
           <div className="mx-auto max-w-6xl px-4 py-20 text-center sm:px-6">
-            <h2 className="mx-auto max-w-2xl text-3xl font-bold tracking-tight text-ink-100 sm:text-4xl">
-              Stop retyping schedules. Start syncing them.
-            </h2>
-            <p className="mx-auto mt-4 max-w-xl text-lg text-ink-300">
-              Upload a photo, invite your team, and let ShiftSync handle the rest.
-            </p>
-            <Link
-              href="/signup"
-              className="mt-8 inline-flex items-center justify-center gap-1.5 rounded-lg bg-yellow-400 px-7 py-3.5 text-sm font-semibold text-navy-950 shadow-lg shadow-yellow-400/10 transition-colors hover:bg-yellow-300"
-            >
-              Get Started Free
-              <ChevronRightIcon className="h-4 w-4" />
-            </Link>
+            <RevealOnScroll>
+              <h2 className="mx-auto max-w-2xl text-3xl font-bold tracking-tight text-ink-100 sm:text-4xl">
+                Stop retyping schedules. Start syncing them.
+              </h2>
+              <p className="mx-auto mt-4 max-w-xl text-lg text-ink-300">
+                Upload a photo, invite your team, and let ShiftSync handle the rest.
+              </p>
+              <Link
+                href="/signup"
+                className="mt-8 inline-flex items-center justify-center gap-1.5 rounded-lg bg-yellow-400 px-7 py-3.5 text-sm font-semibold text-navy-950 shadow-lg shadow-yellow-400/10 transition-all duration-150 hover:-translate-y-0.5 hover:bg-yellow-300 active:translate-y-0 active:scale-[0.97]"
+              >
+                Get Started Free
+                <ChevronRightIcon className="h-4 w-4" />
+              </Link>
+            </RevealOnScroll>
           </div>
         </section>
       </main>

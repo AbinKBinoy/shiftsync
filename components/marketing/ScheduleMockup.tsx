@@ -26,10 +26,19 @@ const toneClasses: Record<Block['tone'], string> = {
   outline: 'border-dashed border-ink-500/50 text-ink-500 bg-transparent',
 };
 
+// Global reveal order the blocks "build themselves" in on first paint —
+// left-to-right, matching BLOCKS' own day order. Independent of each day
+// column's local filtered index below.
+const BLOCK_DELAYS = new Map(BLOCKS.map((_, i) => [i, 120 + i * 90]));
+const BADGE_DELAY = 120 + BLOCKS.length * 90 + 100;
+
 export default function ScheduleMockup() {
   return (
     <div className="relative">
-      <div className="absolute -top-4 right-6 z-10 flex items-center gap-1.5 rounded-full border border-yellow-500/30 bg-navy-900 px-3 py-1.5 text-xs font-medium text-yellow-300 shadow-lg shadow-black/30">
+      <div
+        className="animate-block-in absolute -top-4 right-6 z-10 flex items-center gap-1.5 rounded-full border border-yellow-500/30 bg-navy-900 px-3 py-1.5 text-xs font-medium text-yellow-300 shadow-lg shadow-black/30"
+        style={{ animationDelay: `${BADGE_DELAY}ms` }}
+      >
         <SparkleIcon className="h-3.5 w-3.5" />
         Extracted from a photo in seconds
       </div>
@@ -63,16 +72,21 @@ export default function ScheduleMockup() {
               className="grid grid-rows-4 gap-1.5 rounded-lg bg-navy-950/60 p-1 sm:gap-2 sm:p-1.5"
               style={{ minHeight: '9.5rem' }}
             >
-              {BLOCKS.filter((b) => b.day === dayIndex).map((b, i) => (
-                <div
-                  key={i}
-                  className={`flex flex-col justify-center rounded-md border px-1.5 py-1 text-[9px] leading-tight font-medium sm:text-[11px] ${toneClasses[b.tone]}`}
-                  style={{ gridRow: `${b.row} / span ${b.span}` }}
-                >
-                  <span className="truncate">{b.label}</span>
-                  <span className="truncate opacity-80">{b.time}</span>
-                </div>
-              ))}
+              {BLOCKS.map((b, globalIndex) => ({ b, globalIndex }))
+                .filter(({ b }) => b.day === dayIndex)
+                .map(({ b, globalIndex }) => (
+                  <div
+                    key={globalIndex}
+                    className={`animate-block-in flex flex-col justify-center rounded-md border px-1.5 py-1 text-[9px] leading-tight font-medium sm:text-[11px] ${toneClasses[b.tone]}`}
+                    style={{
+                      gridRow: `${b.row} / span ${b.span}`,
+                      animationDelay: `${BLOCK_DELAYS.get(globalIndex)}ms`,
+                    }}
+                  >
+                    <span className="truncate">{b.label}</span>
+                    <span className="truncate opacity-80">{b.time}</span>
+                  </div>
+                ))}
             </div>
           ))}
         </div>
