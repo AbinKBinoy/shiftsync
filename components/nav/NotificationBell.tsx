@@ -54,7 +54,19 @@ function formatRelativeTime(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-export default function NotificationBell({ className = '' }: { className?: string }) {
+export default function NotificationBell({
+  className = '',
+  align = 'right',
+}: {
+  className?: string;
+  // Which side of the trigger button the dropdown hangs from. The sidebar
+  // bell sits near the left edge of the screen, so a right-anchored dropdown
+  // (extending leftward) would run off-screen — it needs 'left' instead
+  // (extending rightward, into the main content area). The mobile floating
+  // bell sits in the top-right corner, where 'right' (the default, extending
+  // leftward) is what stays on-screen.
+  align?: 'left' | 'right';
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -157,7 +169,9 @@ export default function NotificationBell({ className = '' }: { className?: strin
         {open && (
           <div
             role="menu"
-            className="absolute right-0 top-full z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-navy-700 bg-navy-900 shadow-2xl shadow-black/40"
+            className={`absolute top-full z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-navy-700 bg-navy-900 shadow-2xl shadow-black/40 ${
+              align === 'left' ? 'left-0' : 'right-0'
+            }`}
           >
             <div className="flex items-center justify-between border-b border-navy-800 px-4 py-3">
               <span className="text-sm font-semibold text-ink-100">Notifications</span>

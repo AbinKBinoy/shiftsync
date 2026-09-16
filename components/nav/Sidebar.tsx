@@ -62,7 +62,11 @@ export default function Sidebar({
           </div>
         )}
         <div className="flex shrink-0 items-center gap-1.5">
-          <NotificationBell />
+          {/* The sidebar sits at the left edge of the screen, so the dropdown
+              must hang to the right of the bell (extending into the main
+              content area) rather than the default left-ward-extending
+              right-anchor, which would run off the left edge of the viewport. */}
+          <NotificationBell align="left" />
           <button
             type="button"
             onClick={toggle}
