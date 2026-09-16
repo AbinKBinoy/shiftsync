@@ -13,7 +13,16 @@ export default async function AppLayout({
     await getDashboardContext();
 
   return (
-    <div className="flex min-h-screen bg-navy-950">
+    // overflow-x-hidden is scoped to this authenticated app shell rather than
+    // the shared root layout on purpose: the marketing landing page (a
+    // completely separate route tree, rendered from app/page.tsx) has a
+    // position: sticky pinned section, and giving ANY ancestor of a sticky
+    // element a non-visible overflow value — even one that never actually
+    // needs to scroll, like this min-h-screen div — makes that ancestor
+    // sticky's positioning containing block per spec, which breaks it if
+    // that ancestor doesn't genuinely track scroll offset. This route group
+    // has no sticky descendants, so it's safe to contain overflow here.
+    <div className="flex min-h-screen overflow-x-hidden bg-navy-950">
       <Sidebar
         departmentName={department.name}
         displayName={fullName || userEmail}

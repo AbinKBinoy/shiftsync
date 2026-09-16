@@ -32,15 +32,6 @@
   }
 }
 
-/* Guards against any element (fixed-position ones especially, which can
-   trip up 100vw-based sizing on mobile browsers) ever forcing horizontal
-   scroll. Set on both html and body since browsers differ on which of the
-   two actually clips fixed-position descendants. */
-html,
-body {
-  overflow-x: hidden;
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
