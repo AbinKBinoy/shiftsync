@@ -16,8 +16,14 @@ export type NotificationType =
   | 'swap_approved'
   | 'swap_rejected'
   | 'schedule_published'
-  | 'comment';
-export type NotificationTargetType = 'shift' | 'swap_request' | 'schedule';
+  | 'comment'
+  | 'shift_claim_pending'
+  | 'shift_claim_approved';
+export type NotificationTargetType =
+  | 'shift'
+  | 'swap_request'
+  | 'schedule'
+  | 'shift_claim';
 export type ShiftClaimStatus = 'pending' | 'approved' | 'rejected';
 
 export interface Profile {

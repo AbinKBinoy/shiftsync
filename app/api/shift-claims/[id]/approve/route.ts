@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { applyClaimApproval, loadClaimContext, returnClaim } from '@/lib/shiftClaims';
+import { createNotification } from '@/lib/notifications';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -36,6 +37,14 @@ export async function PATCH(_request: NextRequest, { params }: RouteContext) {
   if (failure) {
     return NextResponse.json({ error: failure }, { status: 500 });
   }
+
+  await createNotification(admin, claim.requested_by, {
+    type: 'shift_claim_approved',
+    title: 'Your shift claim was approved',
+    message: `You're now linked to ${claim.employee_name}'s shifts.`,
+    targetType: 'shift_claim',
+    targetId: claim.id,
+  });
 
   return returnClaim(admin, claim.id);
 }

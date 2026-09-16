@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { SWAP_SELECT, ownsShift } from '@/lib/swaps';
+import { notifyTeamLeads } from '@/lib/notifications';
 
 // POST /api/swaps — put one of your shifts up for a drop or a trade.
 export async function POST(request: NextRequest) {
@@ -166,6 +167,34 @@ export async function POST(request: NextRequest) {
     .select(SWAP_SELECT)
     .eq('id', swap.id)
     .single();
+
+  // Nothing needs a team lead's approval yet at this point — that only
+  // happens once someone claims/accepts the request — but a department that
+  // requires approval wants its leads aware swap activity is starting.
+  const { data: department } = await admin
+    .from('departments')
+    .select('require_approval')
+    .eq('id', originalShift.department_id)
+    .maybeSingle();
+
+  if (department?.require_approval) {
+    const requesterName = profile?.full_name?.trim() || 'A team member';
+    await notifyTeamLeads(
+      admin,
+      originalShift.department_id,
+      {
+        type: 'swap_request',
+        title: 'New swap request',
+        message:
+          type === 'drop'
+            ? `${requesterName} wants to drop a shift on ${originalShift.date}.`
+            : `${requesterName} wants to trade a shift on ${originalShift.date}.`,
+        targetType: 'swap_request',
+        targetId: swap.id,
+      },
+      user.id
+    );
+  }
 
   return NextResponse.json({ swap: created }, { status: 201 });
 }

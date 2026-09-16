@@ -1,5 +1,6 @@
 import Sidebar from '@/components/nav/Sidebar';
 import BottomNav from '@/components/nav/BottomNav';
+import NotificationBell from '@/components/nav/NotificationBell';
 import DashboardData from '@/components/dashboard/DashboardData';
 import { getDashboardContext } from '@/lib/department';
 
@@ -18,6 +19,10 @@ export default async function AppLayout({
         displayName={fullName || userEmail}
         isTeamLead={isTeamLead}
       />
+
+      {/* Sidebar carries its own bell on desktop; BottomNav has no room to
+          spare, so mobile gets a small floating bell instead. */}
+      <NotificationBell className="fixed right-4 top-4 z-40 md:hidden" />
 
       <div className="flex-1 pb-16 md:pb-0">
         <DashboardData

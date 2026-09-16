@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { applySwapOutcome, loadSwapContext, returnSwap } from '@/lib/swaps';
+import { createNotification } from '@/lib/notifications';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -9,7 +10,7 @@ export async function PATCH(_request: NextRequest, { params }: RouteContext) {
   const context = await loadSwapContext(id);
 
   if ('error' in context) return context.error;
-  const { admin, user, swap, department } = context;
+  const { admin, user, profile, swap, department } = context;
 
   if (swap.type !== 'drop') {
     return NextResponse.json(
@@ -31,6 +32,16 @@ export async function PATCH(_request: NextRequest, { params }: RouteContext) {
       { status: 400 }
     );
   }
+
+  // Fires regardless of whether a team lead still needs to sign off — the
+  // requester should know someone stepped up either way.
+  await createNotification(admin, swap.requester_id, {
+    type: 'swap_claimed',
+    title: 'Your dropped shift was claimed',
+    message: `${profile?.full_name?.trim() || 'A team member'} claimed your open shift.`,
+    targetType: 'swap_request',
+    targetId: swap.id,
+  });
 
   if (department.require_approval) {
     const { error } = await admin

@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { CLAIM_SELECT } from '@/lib/shiftClaims';
 import { sendShiftClaimNotification } from '@/lib/email';
+import { notifyTeamLeads } from '@/lib/notifications';
 import type { ShiftClaim } from '@/types';
 
 type TeamLeadRow = { profiles: { email: string | null } | null };
@@ -146,6 +147,20 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     console.error('Failed to send shift claim notification email:', err);
   }
+
+  // In-app notification, alongside the email above rather than instead of it.
+  await notifyTeamLeads(
+    admin,
+    departmentId,
+    {
+      type: 'shift_claim_pending',
+      title: 'New shift claim',
+      message: `${claim.requester?.full_name?.trim() || 'A team member'} wants to be linked to ${employeeName}'s shifts.`,
+      targetType: 'shift_claim',
+      targetId: claim.id,
+    },
+    user.id
+  );
 
   return NextResponse.json({ claim }, { status: 201 });
 }

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSignOut } from '@/lib/useSignOut';
 import { NAV_ITEMS } from './navItems';
+import NotificationBell from './NotificationBell';
 
 const STORAGE_KEY = 'shiftsync:sidebar-collapsed';
 
@@ -60,22 +61,25 @@ export default function Sidebar({
             <p className="truncate text-xs text-ink-500">{displayName}</p>
           </div>
         )}
-        <button
-          type="button"
-          onClick={toggle}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className="shrink-0 rounded-md border border-navy-600 p-1.5 text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.75}
-            className="h-4 w-4"
+        <div className="flex shrink-0 items-center gap-1.5">
+          <NotificationBell />
+          <button
+            type="button"
+            onClick={toggle}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            className="rounded-md border border-navy-600 p-1.5 text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100"
           >
-            <path d={collapsed ? 'M9 6l6 6-6 6' : 'M15 6l-6 6 6 6'} />
-          </svg>
-        </button>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.75}
+              className="h-4 w-4"
+            >
+              <path d={collapsed ? 'M9 6l6 6-6 6' : 'M15 6l-6 6 6 6'} />
+            </svg>
+          </button>
+        </div>
       </div>
 
       <nav className="flex-1 space-y-1 p-2">

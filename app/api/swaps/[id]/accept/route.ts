@@ -5,6 +5,7 @@ import {
   ownsShift,
   returnSwap,
 } from '@/lib/swaps';
+import { createNotification } from '@/lib/notifications';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -57,6 +58,16 @@ export async function PATCH(_request: NextRequest, { params }: RouteContext) {
       { status: 403 }
     );
   }
+
+  // Fires regardless of whether a team lead still needs to sign off — the
+  // requester should know someone stepped up either way.
+  await createNotification(admin, swap.requester_id, {
+    type: 'swap_claimed',
+    title: 'Your trade was accepted',
+    message: `${profile?.full_name?.trim() || 'A team member'} accepted your trade proposal.`,
+    targetType: 'swap_request',
+    targetId: swap.id,
+  });
 
   if (department.require_approval) {
     const { error } = await admin

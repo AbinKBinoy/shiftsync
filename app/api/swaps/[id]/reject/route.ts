@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { loadSwapContext, releaseShift, returnSwap } from '@/lib/swaps';
+import { createNotification } from '@/lib/notifications';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -38,6 +39,14 @@ export async function PATCH(_request: NextRequest, { params }: RouteContext) {
   if (swap.offered_shift_id) {
     await releaseShift(admin, swap.offered_shift_id);
   }
+
+  await createNotification(admin, swap.requester_id, {
+    type: 'swap_rejected',
+    title: 'Your swap was rejected',
+    message: `Your ${swap.type} request was turned down by your team lead.`,
+    targetType: 'swap_request',
+    targetId: swap.id,
+  });
 
   return returnSwap(admin, swap.id);
 }
