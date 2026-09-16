@@ -7,10 +7,11 @@ import CalendarGrid from '@/components/dashboard/CalendarGrid';
 export default function CalendarPage() {
   return (
     <div className="flex h-full flex-col">
-      <div className="mb-4 flex justify-end">
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <h1 className="text-xl font-semibold text-ink-100">Calendar</h1>
         <Link
           href="/upload"
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500"
+          className="rounded-lg bg-yellow-400 px-4 py-2 text-sm font-semibold text-navy-950 transition-all duration-150 hover:-translate-y-0.5 hover:bg-yellow-300 active:translate-y-0 active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-950"
         >
           Upload Schedule
         </Link>

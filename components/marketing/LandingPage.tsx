@@ -10,10 +10,12 @@ import {
   PhoneIcon,
   ShieldIcon,
   ChevronRightIcon,
+  GitHubIcon,
 } from './icons';
 
-// Edit this to credit yourself in the footer.
-const BUILDER_NAME = 'Your Name';
+// Edit these to credit yourself in the footer.
+const BUILDER_NAME = 'Abin Kuzhuvelikalam Binoy';
+const BUILDER_GITHUB_URL = 'https://github.com/AbinKBinoy';
 
 type Feature = {
   icon: typeof SparkleIcon;
@@ -52,6 +54,8 @@ const FEATURES: Feature[] = [
 ];
 
 export default function LandingPage() {
+  const currentYear = new Date().getFullYear();
+
   return (
     <div className="min-h-screen bg-navy-950 text-ink-100">
       <SiteHeader />
@@ -169,7 +173,7 @@ export default function LandingPage() {
 
       <footer className="border-t border-navy-800">
         <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-          <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
             <div>
               <span className="text-base font-bold tracking-tight text-ink-100">
                 Shift<span className="text-yellow-400">Sync</span>
@@ -177,9 +181,12 @@ export default function LandingPage() {
               <p className="mt-1 text-sm text-ink-500">
                 AI-powered shift scheduling for frontline teams.
               </p>
+              <p className="mt-4 text-xs text-ink-500">
+                © {currentYear} ShiftSync. All rights reserved.
+              </p>
             </div>
 
-            <nav className="flex items-center gap-5 text-sm text-ink-500">
+            <nav className="flex gap-5 text-sm text-ink-500 sm:justify-center">
               <Link href="/privacy" className="transition-colors hover:text-ink-300">
                 Privacy Policy
               </Link>
@@ -188,7 +195,17 @@ export default function LandingPage() {
               </Link>
             </nav>
 
-            <p className="text-sm text-ink-500">Built by {BUILDER_NAME}</p>
+            <div className="sm:text-right">
+              <a
+                href={BUILDER_GITHUB_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm text-ink-500 transition-colors hover:text-ink-300"
+              >
+                <GitHubIcon className="h-4 w-4" />
+                Built by {BUILDER_NAME}
+              </a>
+            </div>
           </div>
         </div>
       </footer>

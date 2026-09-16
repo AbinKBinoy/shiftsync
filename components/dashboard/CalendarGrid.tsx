@@ -22,6 +22,11 @@ import type { Shift } from '@/types';
 // so a vertical scroll inside the list never gets misread as a swipe.
 const SWIPE_THRESHOLD_PX = 50;
 
+// Shared focus style for controls that sit directly on the section's own
+// navy-900 background, so the ring offset reads cleanly against it.
+const FOCUS_RING =
+  'focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-900';
+
 function ChevronLeftIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} {...props}>
@@ -134,8 +139,8 @@ export default function CalendarGrid() {
   const isSelectedToday = isSameDay(selectedDate, today);
 
   return (
-    <section className="rounded-2xl border border-navy-700 bg-navy-900 p-6 shadow-xl shadow-black/20">
-      {/* Desktop header + week nav — unchanged */}
+    <section className="flex flex-1 flex-col rounded-2xl border border-navy-700 bg-navy-900 p-6 shadow-xl shadow-black/20">
+      {/* Desktop header + week nav */}
       <div className="hidden flex-wrap items-center justify-between gap-3 md:flex">
         <div>
           <h2 className="text-sm font-medium text-ink-300">
@@ -152,21 +157,21 @@ export default function CalendarGrid() {
           <button
             type="button"
             onClick={() => goToWeek(addDays(weekStart, -7))}
-            className="rounded-lg border border-navy-600 px-3 py-1.5 text-sm text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100"
+            className={`rounded-lg border border-navy-600 px-3 py-1.5 text-sm text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100 ${FOCUS_RING}`}
           >
             Previous Week
           </button>
           <button
             type="button"
             onClick={goToday}
-            className="rounded-lg border border-navy-600 px-3 py-1.5 text-sm text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100"
+            className={`rounded-lg border border-navy-600 px-3 py-1.5 text-sm text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100 ${FOCUS_RING}`}
           >
             Today
           </button>
           <button
             type="button"
             onClick={() => goToWeek(addDays(weekStart, 7))}
-            className="rounded-lg border border-navy-600 px-3 py-1.5 text-sm text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100"
+            className={`rounded-lg border border-navy-600 px-3 py-1.5 text-sm text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100 ${FOCUS_RING}`}
           >
             Next Week
           </button>
@@ -180,13 +185,13 @@ export default function CalendarGrid() {
             type="button"
             onClick={() => goToDay(addDays(selectedDate, -1))}
             aria-label="Previous day"
-            className="shrink-0 rounded-lg border border-navy-600 p-2 text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100"
+            className={`shrink-0 rounded-lg border border-navy-600 p-2 text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100 ${FOCUS_RING}`}
           >
             <ChevronLeftIcon className="h-4 w-4" />
           </button>
 
           <div className="min-w-0 text-center">
-            <div className="relative inline-flex items-center gap-1.5 rounded-lg border border-navy-600 px-3 py-1.5">
+            <div className="relative inline-flex items-center gap-1.5 rounded-lg border border-navy-600 px-3 py-1.5 focus-within:ring-2 focus-within:ring-yellow-400 focus-within:ring-offset-2 focus-within:ring-offset-navy-900">
               <CalendarIcon className="h-3.5 w-3.5 shrink-0 text-ink-500" />
               <p className="truncate text-sm font-medium text-ink-100">
                 {formatDayHeading(selectedDate)}
@@ -194,7 +199,9 @@ export default function CalendarGrid() {
               {/* Invisible native date input sized to sit exactly over the
                   pill above — tapping it opens the OS date picker. A hidden
                   input can't reliably be opened programmatically across
-                  browsers, so the input itself IS the tap target. */}
+                  browsers, so the input itself IS the tap target. The pill's
+                  focus-within ring above gives keyboard users a visible focus
+                  indicator despite the input itself being invisible. */}
               <input
                 type="date"
                 value={selectedIso}
@@ -207,7 +214,7 @@ export default function CalendarGrid() {
               <button
                 type="button"
                 onClick={goToday}
-                className="mt-1 block text-xs font-medium text-yellow-400 hover:text-yellow-300"
+                className={`mt-1 block rounded text-xs font-medium text-yellow-400 hover:text-yellow-300 ${FOCUS_RING}`}
               >
                 Jump to today
               </button>
@@ -218,7 +225,7 @@ export default function CalendarGrid() {
             type="button"
             onClick={() => goToDay(addDays(selectedDate, 1))}
             aria-label="Next day"
-            className="shrink-0 rounded-lg border border-navy-600 p-2 text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100"
+            className={`shrink-0 rounded-lg border border-navy-600 p-2 text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100 ${FOCUS_RING}`}
           >
             <ChevronRightIcon className="h-4 w-4" />
           </button>
@@ -240,9 +247,13 @@ export default function CalendarGrid() {
         </p>
       )}
 
-      {/* Desktop 7-column week grid — unchanged */}
-      <div className="mt-5 hidden overflow-x-auto md:block">
-        <div className="grid min-w-[840px] grid-cols-7 gap-2">
+      {/* Desktop 7-column week grid — fills remaining height so the calendar
+          reads as a substantial grid rather than a small card. */}
+      <div className="mt-5 hidden min-h-0 flex-1 overflow-x-auto md:block">
+        <div
+          key={toISODate(weekStart)}
+          className="animate-block-in grid h-full min-w-[840px] auto-rows-fr grid-cols-7 gap-2"
+        >
           {days.map((day, index) => {
             const iso = toISODate(day);
             const dayShifts = shiftsByDate.get(iso) ?? [];
@@ -251,26 +262,30 @@ export default function CalendarGrid() {
             return (
               <div
                 key={iso}
-                className={`flex min-h-40 flex-col rounded-lg border p-2 ${
+                className={`flex min-h-40 flex-col rounded-lg border p-3 transition-colors ${
                   isToday
-                    ? 'border-yellow-500/30 bg-navy-900'
+                    ? 'border-yellow-500/40 bg-navy-800/60 ring-1 ring-yellow-500/15'
                     : 'border-navy-800 bg-navy-950/60'
                 }`}
               >
                 <div className="mb-2 flex items-baseline justify-between">
-                  <span className="text-xs font-medium text-ink-500">
+                  <span
+                    className={`text-xs font-medium ${
+                      isToday ? 'text-yellow-300' : 'text-ink-500'
+                    }`}
+                  >
                     {WEEKDAY_LABELS[index]}
                   </span>
                   <span
                     className={`text-xs tabular-nums ${
-                      isToday ? 'text-yellow-300' : 'text-ink-500'
+                      isToday ? 'font-semibold text-yellow-300' : 'text-ink-500'
                     }`}
                   >
                     {day.getDate()}
                   </span>
                 </div>
 
-                <div className="flex flex-1 flex-col gap-1.5">
+                <div className="flex flex-1 flex-col gap-2">
                   {dayShifts.length === 0 ? (
                     <p className="mt-2 text-center text-xs text-ink-500/60">
                       {shiftsLoading ? '' : 'No shifts'}
@@ -294,11 +309,11 @@ export default function CalendarGrid() {
 
       {/* Mobile single-day list — swipe left/right to change day */}
       <div
-        className="mt-5 md:hidden"
+        className="mt-5 flex-1 md:hidden"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        <div className="flex flex-col gap-2">
+        <div key={selectedIso} className="animate-block-in flex flex-col gap-2">
           {selectedDayShifts.length === 0 ? (
             <p className="rounded-lg border border-navy-800 bg-navy-950/60 py-8 text-center text-sm text-ink-500">
               {shiftsLoading ? 'Loading shifts…' : 'No shifts'}

@@ -3,13 +3,16 @@
 // previous day in any negative-offset timezone — so build dates from local
 // components instead, and never round-trip through UTC.
 
-// 1 = Monday, 0 = Sunday. Change this to 0 for a Sunday–Saturday week.
-export const WEEK_STARTS_ON: 0 | 1 = 1;
+// 1 = Monday, 0 = Sunday. Posted schedules are typically photographed as
+// Sunday–Saturday weeks, so the calendar matches that instead of an ISO week.
+export const WEEK_STARTS_ON: 0 | 1 = 0;
 
-export const WEEKDAY_LABELS =
-  WEEK_STARTS_ON === 1
-    ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-    : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const CANONICAL_WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+export const WEEKDAY_LABELS = [
+  ...CANONICAL_WEEKDAY_LABELS.slice(WEEK_STARTS_ON),
+  ...CANONICAL_WEEKDAY_LABELS.slice(0, WEEK_STARTS_ON),
+];
 
 export function parseISODate(value: string): Date {
   const [year, month, day] = value.split('-').map(Number);
@@ -68,10 +71,16 @@ export function formatDayHeading(date: Date): string {
   });
 }
 
-// Postgres returns "08:00:00"; the grid only needs "08:00".
+// Postgres returns "08:00:00"; the grid shows "8:00 AM".
 export function formatTime(value: string): string {
-  const match = /^(\d{2}:\d{2})/.exec(value ?? '');
-  return match ? match[1] : (value ?? '');
+  const match = /^(\d{2}):(\d{2})/.exec(value ?? '');
+  if (!match) return value ?? '';
+
+  const hours24 = Number(match[1]);
+  const minutes = match[2];
+  const period = hours24 >= 12 ? 'PM' : 'AM';
+  const hours12 = hours24 % 12 === 0 ? 12 : hours24 % 12;
+  return `${hours12}:${minutes} ${period}`;
 }
 
 export function isSameDay(a: Date, b: Date): boolean {
