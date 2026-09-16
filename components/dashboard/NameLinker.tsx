@@ -126,15 +126,15 @@ export default function NameLinker({
   const selectedCount = Object.values(assignments).filter(Boolean).length;
 
   return (
-    <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 shadow-xl">
+    <section className="rounded-2xl border border-navy-700 bg-navy-900 p-6 shadow-xl shadow-black/20">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-sm font-medium text-zinc-300">Link names to accounts</h2>
-        <span className="text-xs text-zinc-500">
+        <h2 className="text-sm font-medium text-ink-300">Link names to accounts</h2>
+        <span className="text-xs text-ink-500">
           {linkedCount} of {totalNames} names linked
         </span>
       </div>
 
-      <p className="mt-1 text-sm text-zinc-500">
+      <p className="mt-1 text-sm text-ink-500">
         Shifts read off a photo only carry a name. Match each one to a member so
         swaps and “my shifts” work.
       </p>
@@ -143,11 +143,11 @@ export default function NameLinker({
         {unlinkedNames.map(([name, count]) => (
           <li
             key={name}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-navy-700 bg-navy-950 px-3 py-2"
           >
             <div className="min-w-0">
-              <p className="truncate text-sm text-zinc-100">{name}</p>
-              <p className="text-xs text-zinc-500">
+              <p className="truncate text-sm text-ink-100">{name}</p>
+              <p className="text-xs text-ink-500">
                 {count} shift{count === 1 ? '' : 's'}
               </p>
             </div>
@@ -158,7 +158,7 @@ export default function NameLinker({
               onChange={(e) =>
                 setAssignments((prev) => ({ ...prev, [name]: e.target.value }))
               }
-              className="min-w-52 rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-1.5 text-sm text-zinc-100 outline-none focus:border-blue-500"
+              className="min-w-52 rounded-lg border border-navy-600 bg-navy-900 px-2 py-1.5 text-sm text-ink-100 outline-none focus:border-yellow-400"
             >
               <option value="">Not linked</option>
               {members.map((m) => (
@@ -191,11 +191,11 @@ export default function NameLinker({
           type="button"
           onClick={handleLinkAll}
           disabled={busy || selectedCount === 0}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg bg-yellow-400 px-4 py-2 text-sm font-semibold text-navy-950 transition-colors hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {busy ? 'Linking…' : 'Link All'}
         </button>
-        <span className="text-xs text-zinc-500">
+        <span className="text-xs text-ink-500">
           {selectedCount} name{selectedCount === 1 ? '' : 's'} ready to link
         </span>
       </div>

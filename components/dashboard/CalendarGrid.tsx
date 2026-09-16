@@ -134,14 +134,14 @@ export default function CalendarGrid() {
   const isSelectedToday = isSameDay(selectedDate, today);
 
   return (
-    <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 shadow-xl">
+    <section className="rounded-2xl border border-navy-700 bg-navy-900 p-6 shadow-xl shadow-black/20">
       {/* Desktop header + week nav — unchanged */}
       <div className="hidden flex-wrap items-center justify-between gap-3 md:flex">
         <div>
-          <h2 className="text-sm font-medium text-zinc-300">
+          <h2 className="text-sm font-medium text-ink-300">
             {formatWeekRange(weekStart)}
           </h2>
-          <p className="mt-0.5 text-xs text-zinc-500">
+          <p className="mt-0.5 text-xs text-ink-500">
             {shiftsLoading
               ? 'Loading shifts…'
               : `${shifts.length} shift${shifts.length === 1 ? '' : 's'} this week`}
@@ -152,21 +152,21 @@ export default function CalendarGrid() {
           <button
             type="button"
             onClick={() => goToWeek(addDays(weekStart, -7))}
-            className="rounded-lg border border-zinc-700 px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:border-zinc-600 hover:text-zinc-50"
+            className="rounded-lg border border-navy-600 px-3 py-1.5 text-sm text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100"
           >
             Previous Week
           </button>
           <button
             type="button"
             onClick={goToday}
-            className="rounded-lg border border-zinc-700 px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:border-zinc-600 hover:text-zinc-50"
+            className="rounded-lg border border-navy-600 px-3 py-1.5 text-sm text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100"
           >
             Today
           </button>
           <button
             type="button"
             onClick={() => goToWeek(addDays(weekStart, 7))}
-            className="rounded-lg border border-zinc-700 px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:border-zinc-600 hover:text-zinc-50"
+            className="rounded-lg border border-navy-600 px-3 py-1.5 text-sm text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100"
           >
             Next Week
           </button>
@@ -180,15 +180,15 @@ export default function CalendarGrid() {
             type="button"
             onClick={() => goToDay(addDays(selectedDate, -1))}
             aria-label="Previous day"
-            className="shrink-0 rounded-lg border border-zinc-700 p-2 text-zinc-300 transition-colors hover:border-zinc-600 hover:text-zinc-50"
+            className="shrink-0 rounded-lg border border-navy-600 p-2 text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100"
           >
             <ChevronLeftIcon className="h-4 w-4" />
           </button>
 
           <div className="min-w-0 text-center">
-            <div className="relative inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 px-3 py-1.5">
-              <CalendarIcon className="h-3.5 w-3.5 shrink-0 text-zinc-400" />
-              <p className="truncate text-sm font-medium text-zinc-100">
+            <div className="relative inline-flex items-center gap-1.5 rounded-lg border border-navy-600 px-3 py-1.5">
+              <CalendarIcon className="h-3.5 w-3.5 shrink-0 text-ink-500" />
+              <p className="truncate text-sm font-medium text-ink-100">
                 {formatDayHeading(selectedDate)}
               </p>
               {/* Invisible native date input sized to sit exactly over the
@@ -207,7 +207,7 @@ export default function CalendarGrid() {
               <button
                 type="button"
                 onClick={goToday}
-                className="mt-1 block text-xs font-medium text-blue-400 hover:text-blue-300"
+                className="mt-1 block text-xs font-medium text-yellow-400 hover:text-yellow-300"
               >
                 Jump to today
               </button>
@@ -218,13 +218,13 @@ export default function CalendarGrid() {
             type="button"
             onClick={() => goToDay(addDays(selectedDate, 1))}
             aria-label="Next day"
-            className="shrink-0 rounded-lg border border-zinc-700 p-2 text-zinc-300 transition-colors hover:border-zinc-600 hover:text-zinc-50"
+            className="shrink-0 rounded-lg border border-navy-600 p-2 text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100"
           >
             <ChevronRightIcon className="h-4 w-4" />
           </button>
         </div>
 
-        <p className="mt-2 text-center text-xs text-zinc-500">
+        <p className="mt-2 text-center text-xs text-ink-500">
           {shiftsLoading
             ? 'Loading shifts…'
             : `${selectedDayShifts.length} shift${selectedDayShifts.length === 1 ? '' : 's'} today`}
@@ -253,17 +253,17 @@ export default function CalendarGrid() {
                 key={iso}
                 className={`flex min-h-40 flex-col rounded-lg border p-2 ${
                   isToday
-                    ? 'border-zinc-600 bg-zinc-950'
-                    : 'border-zinc-800 bg-zinc-950/60'
+                    ? 'border-yellow-500/30 bg-navy-900'
+                    : 'border-navy-800 bg-navy-950/60'
                 }`}
               >
                 <div className="mb-2 flex items-baseline justify-between">
-                  <span className="text-xs font-medium text-zinc-400">
+                  <span className="text-xs font-medium text-ink-500">
                     {WEEKDAY_LABELS[index]}
                   </span>
                   <span
                     className={`text-xs tabular-nums ${
-                      isToday ? 'text-zinc-100' : 'text-zinc-500'
+                      isToday ? 'text-yellow-300' : 'text-ink-500'
                     }`}
                   >
                     {day.getDate()}
@@ -272,7 +272,7 @@ export default function CalendarGrid() {
 
                 <div className="flex flex-1 flex-col gap-1.5">
                   {dayShifts.length === 0 ? (
-                    <p className="mt-2 text-center text-xs text-zinc-700">
+                    <p className="mt-2 text-center text-xs text-ink-500/60">
                       {shiftsLoading ? '' : 'No shifts'}
                     </p>
                   ) : (
@@ -300,7 +300,7 @@ export default function CalendarGrid() {
       >
         <div className="flex flex-col gap-2">
           {selectedDayShifts.length === 0 ? (
-            <p className="rounded-lg border border-zinc-800 bg-zinc-950/60 py-8 text-center text-sm text-zinc-600">
+            <p className="rounded-lg border border-navy-800 bg-navy-950/60 py-8 text-center text-sm text-ink-500">
               {shiftsLoading ? 'Loading shifts…' : 'No shifts'}
             </p>
           ) : (

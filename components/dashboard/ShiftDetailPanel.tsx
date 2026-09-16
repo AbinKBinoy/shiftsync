@@ -17,17 +17,17 @@ const STATUS_LABELS: Record<ShiftStatus, string> = {
 };
 
 const positiveButton =
-  'rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50';
+  'rounded-lg bg-yellow-400 px-3 py-2 text-sm font-semibold text-navy-950 transition-colors hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-50';
 const neutralButton =
-  'rounded-lg border border-zinc-700 px-3 py-2 text-sm font-medium text-zinc-200 transition-colors hover:border-zinc-600 hover:text-zinc-50 disabled:cursor-not-allowed disabled:opacity-50';
+  'rounded-lg border border-navy-600 px-3 py-2 text-sm font-medium text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100 disabled:cursor-not-allowed disabled:opacity-50';
 const destructiveButton =
-  'rounded-lg border border-rose-800 bg-rose-950 px-3 py-2 text-sm font-medium text-rose-200 transition-colors hover:border-rose-700 disabled:cursor-not-allowed disabled:opacity-50';
+  'rounded-lg border border-rose-800/60 bg-rose-950/40 px-3 py-2 text-sm font-medium text-rose-300 transition-colors hover:border-rose-700 hover:bg-rose-950/70 disabled:cursor-not-allowed disabled:opacity-50';
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <dt className="text-xs uppercase tracking-wide text-zinc-500">{label}</dt>
-      <dd className="mt-1 text-sm text-zinc-100">{children}</dd>
+      <dt className="text-xs uppercase tracking-wide text-ink-500">{label}</dt>
+      <dd className="mt-1 text-sm text-ink-100">{children}</dd>
     </div>
   );
 }
@@ -149,15 +149,15 @@ export default function ShiftDetailPanel({
         role="dialog"
         aria-modal="true"
         aria-label="Shift details"
-        className="absolute right-0 top-0 h-full w-full max-w-sm overflow-y-auto border-l border-zinc-800 bg-zinc-900 p-6 shadow-2xl"
+        className="absolute right-0 top-0 h-full w-full max-w-sm overflow-y-auto border-l border-navy-700 bg-navy-900 p-6 shadow-2xl"
       >
         <div className="flex items-start justify-between gap-4">
-          <h2 className="text-lg font-medium text-zinc-50">Shift details</h2>
+          <h2 className="text-lg font-medium text-ink-100">Shift details</h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="rounded-md border border-zinc-700 px-2 py-1 text-sm leading-none text-zinc-400 transition-colors hover:border-zinc-600 hover:text-zinc-100"
+            className="rounded-md border border-navy-600 px-2 py-1 text-sm leading-none text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100"
           >
             ✕
           </button>
@@ -166,7 +166,7 @@ export default function ShiftDetailPanel({
         <dl className="mt-6 space-y-5">
           <Field label="Employee">
             {shift.employee_name}
-            {isMine && <span className="ml-2 text-xs text-blue-400">you</span>}
+            {isMine && <span className="ml-2 text-xs text-yellow-400">you</span>}
           </Field>
 
           <Field label="Date">{formatFullDate(shift.date)}</Field>
@@ -185,12 +185,12 @@ export default function ShiftDetailPanel({
             {shift.profile ? (
               <span>
                 {shift.profile.full_name?.trim() || shift.profile.email}
-                <span className="block text-xs text-zinc-500">
+                <span className="block text-xs text-ink-500">
                   {shift.profile.email}
                 </span>
               </span>
             ) : (
-              <span className="text-zinc-500">
+              <span className="text-ink-500">
                 Not linked to a member yet — this shift only has a name from the
                 schedule photo.
               </span>
@@ -202,7 +202,7 @@ export default function ShiftDetailPanel({
               <span className="capitalize">{swap.type}</span> ·{' '}
               {swap.status.replace('_', ' ')}
               {swap.requester && (
-                <span className="block text-xs text-zinc-500">
+                <span className="block text-xs text-ink-500">
                   Requested by{' '}
                   {swap.requester.full_name?.trim() || swap.requester.email}
                 </span>
@@ -223,7 +223,7 @@ export default function ShiftDetailPanel({
         <div className="mt-6 flex flex-col gap-2">
           {!shift.user_id &&
             (myClaim ? (
-              <p className="rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-400">
+              <p className="rounded-lg border border-navy-700 bg-navy-950 px-3 py-2 text-sm text-ink-300">
                 {myClaim.status === 'pending'
                   ? 'Claim sent — waiting for your team lead to confirm.'
                   : "Your claim for this name was approved — refresh if this shift doesn't show as yours yet."}
@@ -260,10 +260,10 @@ export default function ShiftDetailPanel({
                   Trade this shift
                 </button>
               ) : (
-                <div className="rounded-lg border border-zinc-800 bg-zinc-950 p-3">
+                <div className="rounded-lg border border-navy-700 bg-navy-950 p-3">
                   <label
                     htmlFor="offeredShift"
-                    className="block text-xs font-medium text-zinc-400"
+                    className="block text-xs font-medium text-ink-300"
                   >
                     Which shift do you want in return?
                   </label>
@@ -271,7 +271,7 @@ export default function ShiftDetailPanel({
                     id="offeredShift"
                     value={offeredShiftId}
                     onChange={(e) => setOfferedShiftId(e.target.value)}
-                    className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-1.5 text-sm text-zinc-100 outline-none focus:border-blue-500"
+                    className="mt-2 w-full rounded-lg border border-navy-600 bg-navy-900 px-2 py-1.5 text-sm text-ink-100 outline-none focus:border-yellow-400"
                   >
                     <option value="">Select a shift…</option>
                     {tradeableShifts.map((s) => (
@@ -283,7 +283,7 @@ export default function ShiftDetailPanel({
                   </select>
 
                   {tradeableShifts.length === 0 && (
-                    <p className="mt-2 text-xs text-zinc-500">
+                    <p className="mt-2 text-xs text-ink-500">
                       No other member&apos;s shifts are available this week.
                     </p>
                   )}

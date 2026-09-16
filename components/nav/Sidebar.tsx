@@ -47,24 +47,24 @@ export default function Sidebar({
 
   return (
     <aside
-      className={`hidden shrink-0 flex-col border-r border-zinc-800 bg-zinc-900 md:flex ${
+      className={`hidden shrink-0 flex-col border-r border-navy-800 bg-navy-900 md:flex ${
         collapsed ? 'w-16' : 'w-60'
       }`}
     >
-      <div className="flex items-center justify-between gap-2 border-b border-zinc-800 p-4">
+      <div className="flex items-center justify-between gap-2 border-b border-navy-800 p-4">
         {!collapsed && (
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-zinc-100">
+            <p className="truncate text-sm font-medium text-ink-100">
               {departmentName}
             </p>
-            <p className="truncate text-xs text-zinc-500">{displayName}</p>
+            <p className="truncate text-xs text-ink-500">{displayName}</p>
           </div>
         )}
         <button
           type="button"
           onClick={toggle}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className="shrink-0 rounded-md border border-zinc-700 p-1.5 text-zinc-400 transition-colors hover:border-zinc-600 hover:text-zinc-100"
+          className="shrink-0 rounded-md border border-navy-600 p-1.5 text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100"
         >
           <svg
             viewBox="0 0 24 24"
@@ -89,8 +89,8 @@ export default function Sidebar({
               title={collapsed ? item.label : undefined}
               className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 active
-                  ? 'bg-blue-950 text-blue-300'
-                  : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100'
+                  ? 'bg-yellow-400/10 text-yellow-300'
+                  : 'text-ink-500 hover:bg-navy-800 hover:text-ink-100'
               }`}
             >
               <item.icon className="h-5 w-5 shrink-0" />
@@ -100,7 +100,7 @@ export default function Sidebar({
         })}
       </nav>
 
-      <div className="border-t border-zinc-800 p-3">
+      <div className="border-t border-navy-800 p-3">
         {collapsed ? (
           <button
             type="button"
@@ -108,7 +108,7 @@ export default function Sidebar({
             disabled={loading}
             aria-label="Sign out"
             title="Sign out"
-            className="flex w-full items-center justify-center rounded-lg border border-zinc-700 p-2 text-zinc-400 transition-colors hover:border-zinc-600 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex w-full items-center justify-center rounded-lg border border-navy-600 p-2 text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <svg
               viewBox="0 0 24 24"
@@ -125,7 +125,7 @@ export default function Sidebar({
             type="button"
             onClick={signOut}
             disabled={loading}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-ink-500 transition-colors hover:bg-navy-800 hover:text-ink-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <svg
               viewBox="0 0 24 24"

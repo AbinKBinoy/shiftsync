@@ -12,7 +12,7 @@ export default function BottomNav({ isTeamLead }: { isTeamLead: boolean }) {
   const items = NAV_ITEMS.filter((item) => !item.teamLeadOnly || isTeamLead);
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch border-t border-zinc-800 bg-zinc-900 md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch border-t border-navy-800 bg-navy-900 md:hidden">
       {items.map((item) => {
         const active =
           pathname === item.href || pathname?.startsWith(`${item.href}/`);
@@ -21,7 +21,7 @@ export default function BottomNav({ isTeamLead }: { isTeamLead: boolean }) {
             key={item.href}
             href={item.href}
             className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium ${
-              active ? 'text-blue-400' : 'text-zinc-500'
+              active ? 'text-yellow-400' : 'text-ink-500'
             }`}
           >
             <item.icon className="h-5 w-5" />
@@ -34,7 +34,7 @@ export default function BottomNav({ isTeamLead }: { isTeamLead: boolean }) {
         type="button"
         onClick={signOut}
         disabled={loading}
-        className="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium text-zinc-500 disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium text-ink-500 disabled:cursor-not-allowed disabled:opacity-50"
       >
         <svg
           viewBox="0 0 24 24"

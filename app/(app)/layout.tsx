@@ -12,7 +12,7 @@ export default async function AppLayout({
     await getDashboardContext();
 
   return (
-    <div className="flex min-h-screen bg-zinc-950">
+    <div className="flex min-h-screen bg-navy-950">
       <Sidebar
         departmentName={department.name}
         displayName={fullName || userEmail}

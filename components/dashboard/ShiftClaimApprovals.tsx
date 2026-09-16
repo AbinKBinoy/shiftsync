@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { useDashboard } from './DashboardData';
 
 const positiveButton =
-  'rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50';
+  'rounded-lg bg-yellow-400 px-3 py-1.5 text-sm font-semibold text-navy-950 transition-colors hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-50';
 const destructiveButton =
-  'rounded-lg border border-rose-800 bg-rose-950 px-3 py-1.5 text-sm font-medium text-rose-200 transition-colors hover:border-rose-700 disabled:cursor-not-allowed disabled:opacity-50';
+  'rounded-lg border border-rose-800/60 bg-rose-950/40 px-3 py-1.5 text-sm font-medium text-rose-300 transition-colors hover:border-rose-700 hover:bg-rose-950/70 disabled:cursor-not-allowed disabled:opacity-50';
 
 // claim.created_at is a full timestamp, unlike shifts.date — lib/dates.ts's
 // formatters assume plain 'YYYY-MM-DD' dates, so this one stays local here.
@@ -51,11 +51,11 @@ export default function ShiftClaimApprovals() {
   if (claimsLoading || pending.length === 0) return null;
 
   return (
-    <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 shadow-xl">
-      <h2 className="text-sm font-medium text-zinc-300">
+    <section className="rounded-2xl border border-navy-700 bg-navy-900 p-6 shadow-xl shadow-black/20">
+      <h2 className="text-sm font-medium text-ink-300">
         Shift claims ({pending.length})
       </h2>
-      <p className="mt-1 text-sm text-zinc-500">
+      <p className="mt-1 text-sm text-ink-500">
         Members asking to be linked to a name from the schedule photo.
       </p>
 
@@ -72,17 +72,17 @@ export default function ShiftClaimApprovals() {
         {pending.map((claim) => (
           <li
             key={claim.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2.5"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-navy-700 bg-navy-950 px-3 py-2.5"
           >
             <div className="min-w-0">
-              <p className="truncate text-sm text-zinc-100">
+              <p className="truncate text-sm text-ink-100">
                 <span className="font-medium">
                   {claim.requester?.full_name?.trim() || 'Unnamed member'}
                 </span>{' '}
                 wants to be linked to{' '}
                 <span className="font-medium">{claim.employee_name}</span>
               </p>
-              <p className="text-xs text-zinc-500">
+              <p className="text-xs text-ink-500">
                 {formatClaimTime(claim.created_at)}
               </p>
             </div>

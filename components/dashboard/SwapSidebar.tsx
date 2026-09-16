@@ -7,9 +7,9 @@ import type { Shift, SwapRequest } from '@/types';
 const ACTIVE = ['open', 'claimed', 'pending_approval'];
 
 const STATUS_TONE: Record<string, string> = {
-  open: 'border-amber-700 bg-amber-950 text-amber-200',
-  claimed: 'border-blue-800 bg-blue-950 text-blue-200',
-  pending_approval: 'border-orange-700 bg-orange-950 text-orange-200',
+  open: 'border-amber-700/60 bg-amber-500/10 text-amber-300',
+  claimed: 'border-orange-700/60 bg-orange-500/10 text-orange-300',
+  pending_approval: 'border-orange-600/60 bg-orange-500/15 text-orange-200',
 };
 
 function shortDate(value: string): string {
@@ -31,15 +31,15 @@ export default function SwapSidebar() {
   }
 
   return (
-    <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 shadow-xl">
-      <h2 className="text-sm font-medium text-zinc-300">
+    <section className="rounded-2xl border border-navy-700 bg-navy-900 p-6 shadow-xl shadow-black/20">
+      <h2 className="text-sm font-medium text-ink-300">
         Swap requests{active.length > 0 ? ` (${active.length})` : ''}
       </h2>
 
       {swapsLoading ? (
-        <p className="mt-3 text-sm text-zinc-500">Loading swap requests…</p>
+        <p className="mt-3 text-sm text-ink-500">Loading swap requests…</p>
       ) : active.length === 0 ? (
-        <p className="mt-3 text-sm text-zinc-500">
+        <p className="mt-3 text-sm text-ink-500">
           No open swap requests. Drop or trade a shift to start one.
         </p>
       ) : (
@@ -53,29 +53,29 @@ export default function SwapSidebar() {
                 <button
                   type="button"
                   onClick={() => handleOpen(swap)}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-left transition-colors hover:border-zinc-600"
+                  className="w-full rounded-lg border border-navy-700 bg-navy-950 px-3 py-2.5 text-left transition-colors hover:border-navy-500"
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <span className="truncate text-sm font-medium text-zinc-100">
+                    <span className="truncate text-sm font-medium text-ink-100">
                       {swap.requester?.full_name?.trim() ||
                         swap.requester?.email ||
                         'Unknown'}
                       {mine && (
-                        <span className="ml-2 text-xs text-zinc-500">you</span>
+                        <span className="ml-2 text-xs text-ink-500">you</span>
                       )}
                     </span>
                     <span
                       className={`shrink-0 rounded-md border px-2 py-0.5 text-xs font-medium ${
                         STATUS_TONE[swap.status] ??
-                        'border-zinc-700 bg-zinc-800 text-zinc-300'
+                        'border-navy-600 bg-navy-800 text-ink-300'
                       }`}
                     >
                       {swap.status.replace('_', ' ')}
                     </span>
                   </div>
 
-                  <div className="mt-1 flex items-center gap-2 text-xs text-zinc-400">
-                    <span className="rounded border border-zinc-700 px-1.5 py-0.5 capitalize text-zinc-300">
+                  <div className="mt-1 flex items-center gap-2 text-xs text-ink-300">
+                    <span className="rounded border border-navy-600 px-1.5 py-0.5 capitalize text-ink-300">
                       {swap.type}
                     </span>
                     {shift ? (
@@ -84,7 +84,7 @@ export default function SwapSidebar() {
                         {formatTime(shift.end_time)}
                       </span>
                     ) : (
-                      <span className="text-zinc-600">Shift unavailable</span>
+                      <span className="text-ink-500">Shift unavailable</span>
                     )}
                   </div>
                 </button>
