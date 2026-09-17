@@ -30,8 +30,11 @@ export default async function AppLayout({
       />
 
       {/* Sidebar carries its own bell on desktop; BottomNav has no room to
-          spare, so mobile gets a small floating bell instead. */}
-      <NotificationBell className="fixed right-4 top-4 z-40 md:hidden" />
+          spare, so mobile gets a small floating bell instead. top-20 clears
+          every (app) page's first header row (e.g. Calendar's "Upload
+          Schedule" button sits around y=24-60px given main's py-6) so the
+          bell doesn't sit on top of page content. */}
+      <NotificationBell className="fixed right-4 top-20 z-40 md:hidden" />
 
       <div className="flex-1 pb-16 md:pb-0">
         <DashboardData

@@ -56,11 +56,20 @@ export default function Sidebar({
 
   return (
     <aside
-      className={`hidden shrink-0 flex-col overflow-hidden border-r border-navy-800 bg-navy-900 transition-[width] duration-250 ease-enter md:flex ${
+      className={`hidden shrink-0 flex-col border-r border-navy-800 bg-navy-900 transition-[width] duration-250 ease-enter md:flex ${
         collapsed ? 'w-16' : 'w-60'
       }`}
     >
-      <div className="flex items-center justify-between gap-2 border-b border-navy-800 p-4">
+      {/* No overflow-hidden here: the labels below each clip themselves via
+          their own max-width + overflow-hidden as they collapse, so this
+          container doesn't need to clip anything for that effect — and it
+          must not, since the notification dropdown is wider than the
+          sidebar and needs to visually escape it, not be cut off by it. */}
+      <div
+        className={`flex items-center border-b border-navy-800 transition-[padding] duration-250 ease-enter ${
+          collapsed ? 'justify-center gap-2 p-2' : 'justify-between gap-2 p-4'
+        }`}
+      >
         <div
           className={`min-w-0 overflow-hidden transition-all duration-250 ease-enter ${labelCollapseClass}`}
         >
@@ -69,7 +78,11 @@ export default function Sidebar({
           </p>
           <p className="truncate text-xs text-ink-500">{displayName}</p>
         </div>
-        <div className="flex shrink-0 items-center gap-1.5">
+        <div
+          className={`flex shrink-0 items-center gap-1.5 ${
+            collapsed ? 'flex-col' : 'flex-row'
+          }`}
+        >
           {/* The sidebar sits at the left edge of the screen, so the dropdown
               must hang to the right of the bell (extending into the main
               content area) rather than the default left-ward-extending
