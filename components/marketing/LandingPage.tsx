@@ -1,15 +1,19 @@
+'use client';
+
 import Link from 'next/link';
 import ScheduleMockup from './ScheduleMockup';
 import SiteHeader from './SiteHeader';
 import RevealOnScroll from './RevealOnScroll';
 import HowItWorks from './HowItWorks';
+import FeatureCard from './FeatureCard';
+import SpringCTA from './SpringCTA';
+import { useScrollY } from '@/lib/useScrollY';
 import {
   SparkleIcon,
   SwapIcon,
   CalendarSyncIcon,
   PhoneIcon,
   ShieldIcon,
-  ChevronRightIcon,
   GitHubIcon,
 } from './icons';
 
@@ -55,6 +59,15 @@ const FEATURES: Feature[] = [
 
 export default function LandingPage() {
   const currentYear = new Date().getFullYear();
+  const scrollY = useScrollY();
+
+  // Foreground (text) tracks scroll 1:1, as it always would. The mockup
+  // lags slightly behind — a small positive offset that grows with scroll —
+  // reading as a layer sitting a little further back, the classic
+  // background-moves-slower parallax construction. Deliberately not
+  // gated behind a "still in hero" check: once the hero scrolls out of
+  // view the offset is irrelevant anyway, so there's nothing to clean up.
+  const mockupParallax = scrollY * 0.06;
 
   return (
     <div className="min-h-screen bg-navy-950 text-ink-100">
@@ -79,16 +92,15 @@ export default function LandingPage() {
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Link
+                <SpringCTA
                   href="/signup"
-                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-yellow-400 px-6 py-3 text-sm font-semibold text-navy-950 shadow-lg shadow-yellow-400/10 transition-all duration-150 hover:-translate-y-0.5 hover:bg-yellow-300 active:translate-y-0 active:scale-[0.97]"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-yellow-400 px-6 py-3 text-sm font-semibold text-navy-950 shadow-lg shadow-yellow-400/10 transition-colors hover:bg-yellow-300"
                 >
                   Get Started Free
-                  <ChevronRightIcon className="h-4 w-4" />
-                </Link>
+                </SpringCTA>
                 <Link
                   href="/login"
-                  className="inline-flex items-center justify-center rounded-lg border border-navy-600 px-6 py-3 text-sm font-semibold text-ink-100 transition-all duration-150 hover:-translate-y-0.5 hover:bg-navy-800 active:translate-y-0 active:scale-[0.97]"
+                  className="inline-flex items-center justify-center rounded-lg border border-navy-600 px-6 py-3 text-sm font-semibold text-ink-100 transition-all duration-250 ease-spring hover:-translate-y-0.5 hover:bg-navy-800 active:translate-y-0 active:scale-[0.97]"
                 >
                   Log in
                 </Link>
@@ -99,7 +111,9 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <ScheduleMockup />
+            <div style={{ transform: `translateY(${mockupParallax}px)` }}>
+              <ScheduleMockup />
+            </div>
           </div>
         </section>
 
@@ -119,32 +133,20 @@ export default function LandingPage() {
             </RevealOnScroll>
 
             <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {FEATURES.map((feature, i) => {
-                const Icon = feature.icon;
-                return (
-                  <RevealOnScroll
-                    key={feature.title}
-                    delayMs={i * 80}
-                    className={feature.featured ? 'sm:col-span-2' : ''}
-                  >
-                    <div className="h-full rounded-2xl border border-navy-700 bg-navy-900 p-7 transition-all duration-200 hover:-translate-y-1 hover:border-navy-600 hover:shadow-lg hover:shadow-black/20 sm:p-9">
-                      <span className="flex h-11 w-11 items-center justify-center rounded-lg border border-navy-700 bg-navy-800 text-yellow-400">
-                        <Icon className="h-5 w-5" />
-                      </span>
-                      <h3 className="mt-5 text-xl font-semibold text-ink-100">
-                        {feature.title}
-                      </h3>
-                      <p
-                        className={`mt-2 text-sm leading-relaxed text-ink-300 ${
-                          feature.featured ? 'max-w-2xl' : ''
-                        }`}
-                      >
-                        {feature.body}
-                      </p>
-                    </div>
-                  </RevealOnScroll>
-                );
-              })}
+              {FEATURES.map((feature, i) => (
+                <RevealOnScroll
+                  key={feature.title}
+                  delayMs={i * 80}
+                  className={feature.featured ? 'sm:col-span-2' : ''}
+                >
+                  <FeatureCard
+                    icon={feature.icon}
+                    title={feature.title}
+                    body={feature.body}
+                    featured={feature.featured}
+                  />
+                </RevealOnScroll>
+              ))}
             </div>
           </div>
         </section>
@@ -159,13 +161,12 @@ export default function LandingPage() {
               <p className="mx-auto mt-4 max-w-xl text-lg text-ink-300">
                 Upload a photo, invite your team, and let ShiftSync handle the rest.
               </p>
-              <Link
+              <SpringCTA
                 href="/signup"
-                className="mt-8 inline-flex items-center justify-center gap-1.5 rounded-lg bg-yellow-400 px-7 py-3.5 text-sm font-semibold text-navy-950 shadow-lg shadow-yellow-400/10 transition-all duration-150 hover:-translate-y-0.5 hover:bg-yellow-300 active:translate-y-0 active:scale-[0.97]"
+                className="mt-8 inline-flex items-center justify-center gap-1.5 rounded-lg bg-yellow-400 px-7 py-3.5 text-sm font-semibold text-navy-950 shadow-lg shadow-yellow-400/10 transition-colors hover:bg-yellow-300"
               >
                 Get Started Free
-                <ChevronRightIcon className="h-4 w-4" />
-              </Link>
+              </SpringCTA>
             </RevealOnScroll>
           </div>
         </section>

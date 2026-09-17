@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import RevealOnScroll from './RevealOnScroll';
+import { useScrollY } from '@/lib/useScrollY';
 import { UploadIcon, SparkleIcon, UsersIcon, SwapIcon } from './icons';
 
 type StepIconType = typeof UploadIcon;
@@ -29,26 +30,37 @@ const STEPS: Array<{ icon: StepIconType; title: string; body: string }> = [
   },
 ];
 
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
 function StepCard({
   icon: Icon,
   title,
   body,
   index,
-  active,
+  closeness,
   isLast,
 }: {
   icon: StepIconType;
   title: string;
   body: string;
   index: number;
-  active: boolean;
+  // Continuous 0..1: 1 when this step is exactly centered in the scroll
+  // range, fading smoothly to 0 a full step-width away in either
+  // direction — driven directly by scroll position every frame, not a
+  // threshold that snaps and leaves dead zones in between.
+  closeness: number;
   isLast: boolean;
 }) {
+  const active = closeness > 0.5;
+  const opacity = 0.4 + closeness * 0.6;
+  const scale = 0.95 + closeness * 0.1;
+
   return (
     <div
-      className={`relative transition-all duration-500 ease-out ${
-        active ? 'scale-105 opacity-100' : 'scale-95 opacity-40'
-      }`}
+      className="relative"
+      style={{ opacity, transform: `scale(${scale})` }}
     >
       {!isLast && (
         <div
@@ -81,53 +93,42 @@ function StepCard({
 }
 
 export default function HowItWorks() {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const sentinelRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const scrollY = useScrollY();
+  const [bounds, setBounds] = useState({ top: 0, height: 0 });
+  const [viewportHeight, setViewportHeight] = useState(0);
 
   useEffect(() => {
-    // Each sentinel occupies one full-viewport slice of the tall scroll
-    // container. A -50% root margin on all sides shrinks the observer's
-    // root to a single line at the vertical center of the viewport, so
-    // whichever sentinel currently crosses that line is the active step.
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            const index = Number(entry.target.getAttribute('data-step-index'));
-            if (!Number.isNaN(index)) setActiveIndex(index);
-          }
-        }
-      },
-      { rootMargin: '-50% 0px -50% 0px', threshold: 0 }
-    );
-
-    for (const el of sentinelRefs.current) {
-      if (el) observer.observe(el);
+    function measure() {
+      const el = sectionRef.current;
+      if (el) setBounds({ top: el.offsetTop, height: el.offsetHeight });
+      setViewportHeight(window.innerHeight);
     }
-
-    return () => observer.disconnect();
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
   }, []);
 
+  // 0..STEPS.length, continuous — how far through the pinned scroll range
+  // we are, in fractional "steps". Recomputed every scroll frame (via
+  // useScrollY's rAF throttling), so there's no dead zone: every pixel of
+  // scroll moves this by some amount, unlike the old IntersectionObserver
+  // threshold that only updated at four fixed crossing points.
+  const scrollableRange = Math.max(bounds.height - viewportHeight, 1);
+  const rawProgress = clamp((scrollY - bounds.top) / scrollableRange, 0, 1);
+  const stepProgress = rawProgress * STEPS.length;
+
   return (
-    <section id="how-it-works" className="border-t border-navy-800 bg-navy-900/40">
+    <section
+      id="how-it-works"
+      ref={sectionRef}
+      className="border-t border-navy-800 bg-navy-900/40"
+    >
       {/* Desktop, motion-safe: pinned scroll-driven steps */}
       <div
         className="relative hidden lg:motion-safe:block"
         style={{ height: `${STEPS.length * 100}vh` }}
       >
-        {STEPS.map((_, i) => (
-          <div
-            key={i}
-            ref={(el) => {
-              sentinelRefs.current[i] = el;
-            }}
-            data-step-index={i}
-            className="absolute inset-x-0"
-            style={{ top: `${i * 100}vh`, height: '100vh' }}
-            aria-hidden="true"
-          />
-        ))}
-
         <div className="sticky top-16 flex h-[calc(100vh-4rem)] items-center overflow-hidden">
           <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6">
             <div className="max-w-2xl">
@@ -140,17 +141,20 @@ export default function HowItWorks() {
             </div>
 
             <div className="mt-16 grid grid-cols-4 gap-8">
-              {STEPS.map((step, i) => (
-                <StepCard
-                  key={step.title}
-                  icon={step.icon}
-                  title={step.title}
-                  body={step.body}
-                  index={i}
-                  active={i === activeIndex}
-                  isLast={i === STEPS.length - 1}
-                />
-              ))}
+              {STEPS.map((step, i) => {
+                const closeness = clamp(1 - Math.abs(stepProgress - (i + 0.5)), 0, 1);
+                return (
+                  <StepCard
+                    key={step.title}
+                    icon={step.icon}
+                    title={step.title}
+                    body={step.body}
+                    index={i}
+                    closeness={closeness}
+                    isLast={i === STEPS.length - 1}
+                  />
+                );
+              })}
             </div>
           </div>
         </div>

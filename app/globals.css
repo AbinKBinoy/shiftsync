@@ -31,6 +31,13 @@
      for both directions. */
   --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  /* A "back" curve with slight overshoot — reads as spring-damped motion
+     for simple two-state CSS transitions (hover/press on cards and
+     secondary buttons) where a real JS spring integrator would be
+     overkill. Reserve the real lib/useSpring.ts physics for continuous,
+     moving-target motion (cursor tilt, parallax) that a fixed-endpoint
+     CSS transition genuinely can't express. */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* Shared motion durations. Tailwind v4 has no --duration-* theme namespace
