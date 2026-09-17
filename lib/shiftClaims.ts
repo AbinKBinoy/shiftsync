@@ -71,6 +71,45 @@ export async function loadClaimContext(
   return { admin, user, claim };
 }
 
+// A department maps one account to at most one name — someone linked as
+// "J. Rivera" can't also become "M. Chen" in the same department. Returns
+// the name they're already linked to (if any, and if it differs from the
+// name they're now trying for), or null when there's no conflict. Shared by
+// the claim POST route, the approve route (second line of defense in case
+// another path linked them in the meantime), and the manual link endpoint.
+export async function findLinkedNameConflict(
+  admin: SupabaseClient,
+  departmentId: string,
+  userId: string,
+  employeeName: string
+): Promise<string | null> {
+  const { data: linkedShift } = await admin
+    .from('shifts')
+    .select('employee_name')
+    .eq('department_id', departmentId)
+    .eq('user_id', userId)
+    .neq('employee_name', employeeName)
+    .limit(1)
+    .maybeSingle();
+
+  if (linkedShift) return linkedShift.employee_name;
+
+  // Defensive second source: an approved claim for a different name, in case
+  // no shift row happens to reflect it yet (e.g. the matching shifts were
+  // since deleted, or a fresh batch under the linked name hasn't arrived).
+  const { data: approvedClaim } = await admin
+    .from('shift_claims')
+    .select('employee_name')
+    .eq('department_id', departmentId)
+    .eq('requested_by', userId)
+    .eq('status', 'approved')
+    .neq('employee_name', employeeName)
+    .limit(1)
+    .maybeSingle();
+
+  return approvedClaim?.employee_name ?? null;
+}
+
 // Links every unlinked shift with this employee_name (in this department) to
 // the person whose claim was just approved — same bulk-update shape as
 // POST /api/shifts/link, scoped to the one name on this claim.

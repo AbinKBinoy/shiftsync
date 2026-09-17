@@ -78,6 +78,32 @@ export default function NameLinker({
     };
   }, [allShifts]);
 
+  // A member can only be linked to one name per department — the first name
+  // any of their shifts already carries is treated as "theirs" here. Backed
+  // up server-side (findLinkedNameConflict); this is purely so the dropdown
+  // can steer a team lead away from the conflict before they submit.
+  const linkedNameByUser = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const shift of allShifts) {
+      if (shift.user_id && !map.has(shift.user_id)) {
+        map.set(shift.user_id, shift.employee_name);
+      }
+    }
+    return map;
+  }, [allShifts]);
+
+  // Also guards against picking the same member for two different names in
+  // one unsaved batch, not just against names they're already linked to.
+  function conflictFor(userId: string, forName: string): string | null {
+    const existing = linkedNameByUser.get(userId);
+    if (existing && existing !== forName) return existing;
+
+    for (const [otherName, otherUserId] of Object.entries(assignments)) {
+      if (otherUserId === userId && otherName !== forName) return otherName;
+    }
+    return null;
+  }
+
   async function handleLinkAll() {
     const links = Object.entries(assignments)
       .filter(([, userId]) => userId)
@@ -85,6 +111,16 @@ export default function NameLinker({
 
     if (links.length === 0) {
       setError('Match at least one name to a member first.');
+      return;
+    }
+
+    const conflict = links
+      .map(({ employee_name, user_id }) => conflictFor(user_id, employee_name))
+      .find(Boolean);
+    if (conflict) {
+      setError(
+        `One of these members is already linked to ${conflict} in this department — a member can only be linked to one name.`
+      );
       return;
     }
 
@@ -140,35 +176,55 @@ export default function NameLinker({
       </p>
 
       <ul className="mt-4 space-y-2">
-        {unlinkedNames.map(([name, count]) => (
-          <li
-            key={name}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-navy-700 bg-navy-950 px-3 py-2"
-          >
-            <div className="min-w-0">
-              <p className="truncate text-sm text-ink-100">{name}</p>
-              <p className="text-xs text-ink-500">
-                {count} shift{count === 1 ? '' : 's'}
-              </p>
-            </div>
+        {unlinkedNames.map(([name, count]) => {
+          const selectedConflict = assignments[name]
+            ? conflictFor(assignments[name], name)
+            : null;
 
-            <select
-              aria-label={`Link ${name} to a member`}
-              value={assignments[name] ?? ''}
-              onChange={(e) =>
-                setAssignments((prev) => ({ ...prev, [name]: e.target.value }))
-              }
-              className="min-w-52 rounded-lg border border-navy-600 bg-navy-900 px-2 py-1.5 text-sm text-ink-100 outline-none focus:border-yellow-400"
+          return (
+            <li
+              key={name}
+              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-navy-700 bg-navy-950 px-3 py-2"
             >
-              <option value="">Not linked</option>
-              {members.map((m) => (
-                <option key={m.user_id} value={m.user_id}>
-                  {m.name}
-                </option>
-              ))}
-            </select>
-          </li>
-        ))}
+              <div className="min-w-0">
+                <p className="truncate text-sm text-ink-100">{name}</p>
+                <p className="text-xs text-ink-500">
+                  {count} shift{count === 1 ? '' : 's'}
+                </p>
+              </div>
+
+              <div className="min-w-52">
+                <select
+                  aria-label={`Link ${name} to a member`}
+                  value={assignments[name] ?? ''}
+                  onChange={(e) =>
+                    setAssignments((prev) => ({ ...prev, [name]: e.target.value }))
+                  }
+                  className={`w-full rounded-lg border bg-navy-900 px-2 py-1.5 text-sm text-ink-100 outline-none focus:border-yellow-400 ${
+                    selectedConflict ? 'border-amber-700/60' : 'border-navy-600'
+                  }`}
+                >
+                  <option value="">Not linked</option>
+                  {members.map((m) => {
+                    const conflict = conflictFor(m.user_id, name);
+                    return (
+                      <option key={m.user_id} value={m.user_id} disabled={Boolean(conflict)}>
+                        {m.name}
+                        {conflict ? ` (linked to ${conflict})` : ''}
+                      </option>
+                    );
+                  })}
+                </select>
+
+                {selectedConflict && (
+                  <p className="mt-1 text-xs text-amber-400">
+                    Already linked to {selectedConflict} — pick someone else.
+                  </p>
+                )}
+              </div>
+            </li>
+          );
+        })}
       </ul>
 
       {error && (

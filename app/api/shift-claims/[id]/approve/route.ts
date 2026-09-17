@@ -1,5 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { applyClaimApproval, loadClaimContext, returnClaim } from '@/lib/shiftClaims';
+import {
+  applyClaimApproval,
+  findLinkedNameConflict,
+  loadClaimContext,
+  returnClaim,
+} from '@/lib/shiftClaims';
 import { createNotification } from '@/lib/notifications';
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -16,6 +21,25 @@ export async function PATCH(_request: NextRequest, { params }: RouteContext) {
   if (claim.status !== 'pending') {
     return NextResponse.json(
       { error: 'This claim has already been resolved' },
+      { status: 409 }
+    );
+  }
+
+  // Second line of defense: the requester may have been linked to a
+  // different name through another path (the manual NameLinker tool, or a
+  // second claim approved first) since this claim was filed.
+  const conflictName = await findLinkedNameConflict(
+    admin,
+    claim.department_id,
+    claim.requested_by,
+    claim.employee_name
+  );
+
+  if (conflictName) {
+    return NextResponse.json(
+      {
+        error: `This member is already linked to ${conflictName} in this department — approving this claim would link them to a second name.`,
+      },
       { status: 409 }
     );
   }

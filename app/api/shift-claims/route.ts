@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { CLAIM_SELECT } from '@/lib/shiftClaims';
+import { CLAIM_SELECT, findLinkedNameConflict } from '@/lib/shiftClaims';
 import { sendShiftClaimNotification } from '@/lib/email';
 import { notifyTeamLeads } from '@/lib/notifications';
 import type { ShiftClaim } from '@/types';
@@ -53,6 +53,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: 'You are not a member of this department' },
       { status: 403 }
+    );
+  }
+
+  const conflictName = await findLinkedNameConflict(
+    admin,
+    departmentId,
+    user.id,
+    employeeName
+  );
+
+  if (conflictName) {
+    return NextResponse.json(
+      {
+        error: `You're already linked to ${conflictName} in this department — contact your team lead if this is wrong.`,
+      },
+      { status: 409 }
     );
   }
 

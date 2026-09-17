@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { findLinkedNameConflict } from '@/lib/shiftClaims';
 
 type IncomingLink = { employee_name?: unknown; user_id?: unknown };
 
@@ -64,12 +65,28 @@ export async function POST(request: NextRequest) {
   // Only ever link to people who actually belong to this department.
   const { data: members } = await admin
     .from('department_members')
-    .select('user_id')
+    .select('user_id, profiles(full_name, email)')
     .eq('department_id', departmentId);
 
-  const memberIds = new Set((members ?? []).map((m) => m.user_id));
+  type MemberRow = {
+    user_id: string;
+    profiles: { full_name: string | null; email: string | null } | null;
+  };
+  const memberRows = (members ?? []) as unknown as MemberRow[];
+  const memberIds = new Set(memberRows.map((m) => m.user_id));
+  const memberNameById = new Map(
+    memberRows.map((m) => [
+      m.user_id,
+      m.profiles?.full_name?.trim() || m.profiles?.email || 'This member',
+    ])
+  );
 
   const links: { employee_name: string; user_id: string }[] = [];
+  // A team lead can match two different unlinked names to the same member in
+  // one batch by mistake — catch that here, before either write happens,
+  // rather than letting whichever update runs second silently win.
+  const namesByUserInBatch = new Map<string, string>();
+
   for (const raw of body.links as IncomingLink[]) {
     const employeeName =
       typeof raw.employee_name === 'string' ? raw.employee_name.trim() : '';
@@ -81,6 +98,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: `${employeeName} was matched to someone outside this department` },
         { status: 400 }
+      );
+    }
+
+    const otherNameInBatch = namesByUserInBatch.get(userId);
+    if (otherNameInBatch && otherNameInBatch !== employeeName) {
+      return NextResponse.json(
+        {
+          error: `${memberNameById.get(userId)} was matched to both ${otherNameInBatch} and ${employeeName} — a member can only be linked to one name per department.`,
+        },
+        { status: 400 }
+      );
+    }
+    namesByUserInBatch.set(userId, employeeName);
+
+    const conflictName = await findLinkedNameConflict(
+      admin,
+      departmentId,
+      userId,
+      employeeName
+    );
+    if (conflictName) {
+      return NextResponse.json(
+        {
+          error: `${memberNameById.get(userId)} is already linked to ${conflictName} in this department — contact your team lead if this is wrong.`,
+        },
+        { status: 409 }
       );
     }
 

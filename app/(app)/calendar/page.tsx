@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import CalendarGrid from '@/components/dashboard/CalendarGrid';
+import ClaimNameBanner from '@/components/dashboard/ClaimNameBanner';
 
 // "Upload Schedule" lived next to the department header on the old combined
 // dashboard page — kept here, on the new home page, so the feature isn't
@@ -16,6 +17,7 @@ export default function CalendarPage() {
           Upload Schedule
         </Link>
       </div>
+      <ClaimNameBanner />
       <CalendarGrid />
     </div>
   );
