@@ -23,10 +23,10 @@ export default function SiteHeader() {
 
   return (
     <header
-      className={`sticky top-0 z-40 border-b transition-colors duration-300 backdrop-blur-sm ${
+      className={`sticky top-0 z-40 border-b transition-[background-color,border-color,backdrop-filter] duration-250 ease-enter ${
         scrolled
-          ? 'border-navy-800 bg-navy-950/85'
-          : 'border-transparent bg-transparent'
+          ? 'border-navy-800 bg-navy-950/85 backdrop-blur-sm'
+          : 'border-transparent bg-transparent backdrop-blur-none'
       }`}
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">

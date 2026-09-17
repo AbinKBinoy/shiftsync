@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { SVGProps } from 'react';
 import { useRouter } from 'next/navigation';
+import { exitAnimationDelay, MOTION_MS } from '@/lib/motion';
 import type { Notification, NotificationType } from '@/types';
 
 const POLL_INTERVAL_MS = 45_000;
@@ -73,6 +74,42 @@ export default function NotificationBell({
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // The dropdown grows in / shrinks away rather than popping, so it needs to
+  // stay mounted for one exit-animation beat after `open` goes false.
+  // `entered` drives the scale/opacity; `renderDropdown` controls mounting.
+  const [renderDropdown, setRenderDropdown] = useState(false);
+  const [entered, setEntered] = useState(false);
+  const [prevOpen, setPrevOpen] = useState(open);
+
+  // Reacting to `open` changing happens here, during render, rather than in
+  // an effect — React's documented pattern for adjusting state when a prop
+  // or piece of state changes. The effects below are left with only genuine
+  // async subscriptions (a rAF, a timer), each setting state from its own
+  // callback rather than synchronously in the effect body.
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) {
+      setRenderDropdown(true);
+    } else {
+      setEntered(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!open) return;
+    const raf = requestAnimationFrame(() => setEntered(true));
+    return () => cancelAnimationFrame(raf);
+  }, [open]);
+
+  useEffect(() => {
+    if (open || !renderDropdown) return;
+    const timeout = setTimeout(
+      () => setRenderDropdown(false),
+      exitAnimationDelay(MOTION_MS.base)
+    );
+    return () => clearTimeout(timeout);
+  }, [open, renderDropdown]);
 
   useEffect(() => {
     let active = true;
@@ -156,7 +193,7 @@ export default function NotificationBell({
           aria-haspopup="menu"
           aria-expanded={open}
           aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
-          className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-navy-600 text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-900"
+          className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-navy-600 text-ink-300 transition-all duration-150 hover:border-navy-500 hover:text-ink-100 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-900"
         >
           <BellIcon className="h-5 w-5" />
           {unreadCount > 0 && (
@@ -166,11 +203,13 @@ export default function NotificationBell({
           )}
         </button>
 
-        {open && (
+        {renderDropdown && (
           <div
             role="menu"
-            className={`absolute top-full z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-navy-700 bg-navy-900 shadow-2xl shadow-black/40 ${
-              align === 'left' ? 'left-0' : 'right-0'
+            className={`absolute top-full z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-navy-700 bg-navy-900 shadow-2xl shadow-black/40 transition-all duration-250 ${
+              align === 'left' ? 'left-0 origin-top-left' : 'right-0 origin-top-right'
+            } ${
+              entered ? 'scale-100 opacity-100 ease-enter' : 'scale-95 opacity-0 ease-exit'
             }`}
           >
             <div className="flex items-center justify-between border-b border-navy-800 px-4 py-3">
@@ -179,7 +218,7 @@ export default function NotificationBell({
                 <button
                   type="button"
                   onClick={markAllAsRead}
-                  className="rounded text-xs font-medium text-yellow-400 hover:text-yellow-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
+                  className="rounded text-xs font-medium text-yellow-400 transition-transform duration-150 hover:text-yellow-300 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
                 >
                   Mark all as read
                 </button>
@@ -200,7 +239,7 @@ export default function NotificationBell({
                     type="button"
                     role="menuitem"
                     onClick={() => handleSelect(notification)}
-                    className={`flex w-full flex-col gap-1 border-b border-navy-800 px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-navy-800/60 focus:outline-none focus-visible:bg-navy-800/60 ${
+                    className={`flex w-full flex-col gap-1 border-b border-navy-800 px-4 py-3 text-left transition-all duration-150 last:border-b-0 hover:bg-navy-800/60 active:scale-[0.98] focus:outline-none focus-visible:bg-navy-800/60 ${
                       notification.read ? '' : 'bg-navy-800/30'
                     }`}
                   >

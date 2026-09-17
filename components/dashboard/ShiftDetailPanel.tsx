@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useDashboard } from './DashboardData';
 import { formatFullDate, formatTime } from '@/lib/dates';
+import { exitAnimationDelay, MOTION_MS } from '@/lib/motion';
 import type { Shift, ShiftStatus } from '@/types';
 
 type ShiftDetailPanelProps = {
@@ -17,11 +18,11 @@ const STATUS_LABELS: Record<ShiftStatus, string> = {
 };
 
 const positiveButton =
-  'rounded-lg bg-yellow-400 px-3 py-2 text-sm font-semibold text-navy-950 transition-colors hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-50';
+  'rounded-lg bg-yellow-400 px-3 py-2 text-sm font-semibold text-navy-950 transition-all duration-150 hover:bg-yellow-300 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50';
 const neutralButton =
-  'rounded-lg border border-navy-600 px-3 py-2 text-sm font-medium text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100 disabled:cursor-not-allowed disabled:opacity-50';
+  'rounded-lg border border-navy-600 px-3 py-2 text-sm font-medium text-ink-300 transition-all duration-150 hover:border-navy-500 hover:text-ink-100 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50';
 const destructiveButton =
-  'rounded-lg border border-rose-800/60 bg-rose-950/40 px-3 py-2 text-sm font-medium text-rose-300 transition-colors hover:border-rose-700 hover:bg-rose-950/70 disabled:cursor-not-allowed disabled:opacity-50';
+  'rounded-lg border border-rose-800/60 bg-rose-950/40 px-3 py-2 text-sm font-medium text-rose-300 transition-all duration-150 hover:border-rose-700 hover:bg-rose-950/70 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50';
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -33,7 +34,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 export default function ShiftDetailPanel({
-  shift,
+  shift: shiftProp,
   onClose,
 }: ShiftDetailPanelProps) {
   const { departmentId, currentUserId, isTeamLead, shifts, claims, swapForShift, refresh } =
@@ -44,8 +45,51 @@ export default function ShiftDetailPanel({
   const [tradeOpen, setTradeOpen] = useState(false);
   const [offeredShiftId, setOfferedShiftId] = useState('');
 
+  // The panel slides/fades out rather than vanishing, so it needs to stay
+  // mounted (showing the last real shift) for one exit-animation beat after
+  // `shift` goes null, then actually unmount. `entered` drives the
+  // transform/opacity; `renderedShift` is what's rendered, always the most
+  // recent non-null shift so content doesn't blank out mid-exit.
+  const [renderedShift, setRenderedShift] = useState<Shift | null>(null);
+  const [entered, setEntered] = useState(false);
+  const [prevShiftProp, setPrevShiftProp] = useState(shiftProp);
+
+  // Reacting to the prop change happens here, during render, rather than in
+  // an effect — this is React's documented pattern for adjusting state when
+  // a prop changes ("you might not need an effect"), and it lets the exit
+  // transition start on the very same render as the close instead of
+  // waiting a tick for an effect to fire. The two effects below are left
+  // with only genuine async subscriptions (a rAF, a timer), each setting
+  // state from its own callback rather than synchronously in the effect body.
+  if (shiftProp !== prevShiftProp) {
+    setPrevShiftProp(shiftProp);
+    if (shiftProp) {
+      setRenderedShift(shiftProp);
+    } else {
+      setEntered(false);
+    }
+  }
+
   useEffect(() => {
-    if (!shift) return;
+    if (!shiftProp) return;
+    // Scheduling "entered" a frame after mount (rather than in the same
+    // tick) is what makes the transition actually play — toggling both in
+    // one render would skip straight to the end state with no visible motion.
+    const raf = requestAnimationFrame(() => setEntered(true));
+    return () => cancelAnimationFrame(raf);
+  }, [shiftProp]);
+
+  useEffect(() => {
+    if (shiftProp || !renderedShift) return;
+    const timeout = setTimeout(
+      () => setRenderedShift(null),
+      exitAnimationDelay(MOTION_MS.slow)
+    );
+    return () => clearTimeout(timeout);
+  }, [shiftProp, renderedShift]);
+
+  useEffect(() => {
+    if (!shiftProp) return;
 
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose();
@@ -53,40 +97,41 @@ export default function ShiftDetailPanel({
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [shift, onClose]);
+  }, [shiftProp, onClose]);
 
-  const swap = shift ? swapForShift(shift.id) : null;
+  const swap = renderedShift ? swapForShift(renderedShift.id) : null;
 
   // Most recent self-claim this user has made for this shift's name, if any.
   // A rejected claim doesn't block trying again, so only pending/approved
   // are treated as "already handled" — claims are already newest-first.
   const myClaim = useMemo(() => {
-    if (!shift || shift.user_id) return null;
+    if (!renderedShift || renderedShift.user_id) return null;
     return (
       claims.find(
         (c) =>
-          c.employee_name === shift.employee_name &&
+          c.employee_name === renderedShift.employee_name &&
           c.requested_by === currentUserId &&
           (c.status === 'pending' || c.status === 'approved')
       ) ?? null
     );
-  }, [claims, shift, currentUserId]);
+  }, [claims, renderedShift, currentUserId]);
 
   // A trade is proposed for one specific shift, so only its owner can accept.
   const tradeableShifts = useMemo(
     () =>
       shifts.filter(
         (s) =>
-          s.id !== shift?.id &&
+          s.id !== renderedShift?.id &&
           s.status === 'assigned' &&
           s.user_id &&
           s.user_id !== currentUserId
       ),
-    [shifts, shift?.id, currentUserId]
+    [shifts, renderedShift?.id, currentUserId]
   );
 
-  if (!shift) return null;
+  if (!renderedShift) return null;
 
+  const shift = renderedShift;
   const isMine = Boolean(shift.user_id) && shift.user_id === currentUserId;
   const isRequester = swap?.requester_id === currentUserId;
   const offeredToMe =
@@ -143,13 +188,21 @@ export default function ShiftDetailPanel({
 
   return (
     <div className="fixed inset-0 z-50">
-      <div onClick={onClose} aria-hidden className="absolute inset-0 bg-black/60" />
+      <div
+        onClick={onClose}
+        aria-hidden
+        className={`absolute inset-0 bg-black/60 transition-opacity duration-400 ${
+          entered ? 'opacity-100 ease-enter' : 'opacity-0 ease-exit'
+        }`}
+      />
 
       <aside
         role="dialog"
         aria-modal="true"
         aria-label="Shift details"
-        className="absolute right-0 top-0 h-full w-full max-w-sm overflow-y-auto border-l border-navy-700 bg-navy-900 p-6 shadow-2xl"
+        className={`absolute right-0 top-0 h-full w-full max-w-sm overflow-y-auto border-l border-navy-700 bg-navy-900 p-6 shadow-2xl transition-transform duration-400 ${
+          entered ? 'translate-x-0 ease-enter' : 'translate-x-full ease-exit'
+        }`}
       >
         <div className="flex items-start justify-between gap-4">
           <h2 className="text-lg font-medium text-ink-100">Shift details</h2>
@@ -157,7 +210,7 @@ export default function ShiftDetailPanel({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="rounded-md border border-navy-600 px-2 py-1 text-sm leading-none text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100"
+            className="rounded-md border border-navy-600 px-2 py-1 text-sm leading-none text-ink-300 transition-all duration-150 hover:border-navy-500 hover:text-ink-100 active:scale-95"
           >
             ✕
           </button>

@@ -27,6 +27,10 @@ const SWIPE_THRESHOLD_PX = 50;
 const FOCUS_RING =
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-900';
 
+// Shared press feedback — matters most here on touch, where :hover never
+// fires at all, so this is the only acknowledgement a tap gets.
+const PRESS = 'transition-all duration-150 active:scale-[0.97]';
+
 function ChevronLeftIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} {...props}>
@@ -157,21 +161,21 @@ export default function CalendarGrid() {
           <button
             type="button"
             onClick={() => goToWeek(addDays(weekStart, -7))}
-            className={`rounded-lg border border-navy-600 px-3 py-1.5 text-sm text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100 ${FOCUS_RING}`}
+            className={`rounded-lg border border-navy-600 px-3 py-1.5 text-sm text-ink-300 hover:border-navy-500 hover:text-ink-100 ${PRESS} ${FOCUS_RING}`}
           >
             Previous Week
           </button>
           <button
             type="button"
             onClick={goToday}
-            className={`rounded-lg border border-navy-600 px-3 py-1.5 text-sm text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100 ${FOCUS_RING}`}
+            className={`rounded-lg border border-navy-600 px-3 py-1.5 text-sm text-ink-300 hover:border-navy-500 hover:text-ink-100 ${PRESS} ${FOCUS_RING}`}
           >
             Today
           </button>
           <button
             type="button"
             onClick={() => goToWeek(addDays(weekStart, 7))}
-            className={`rounded-lg border border-navy-600 px-3 py-1.5 text-sm text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100 ${FOCUS_RING}`}
+            className={`rounded-lg border border-navy-600 px-3 py-1.5 text-sm text-ink-300 hover:border-navy-500 hover:text-ink-100 ${PRESS} ${FOCUS_RING}`}
           >
             Next Week
           </button>
@@ -185,7 +189,7 @@ export default function CalendarGrid() {
             type="button"
             onClick={() => goToDay(addDays(selectedDate, -1))}
             aria-label="Previous day"
-            className={`shrink-0 rounded-lg border border-navy-600 p-2 text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100 ${FOCUS_RING}`}
+            className={`shrink-0 rounded-lg border border-navy-600 p-2 text-ink-300 hover:border-navy-500 hover:text-ink-100 ${PRESS} ${FOCUS_RING}`}
           >
             <ChevronLeftIcon className="h-4 w-4" />
           </button>
@@ -214,7 +218,7 @@ export default function CalendarGrid() {
               <button
                 type="button"
                 onClick={goToday}
-                className={`mt-1 block rounded text-xs font-medium text-yellow-400 hover:text-yellow-300 ${FOCUS_RING}`}
+                className={`mt-1 block rounded text-xs font-medium text-yellow-400 transition-all duration-150 hover:text-yellow-300 active:scale-95 ${FOCUS_RING}`}
               >
                 Jump to today
               </button>
@@ -225,7 +229,7 @@ export default function CalendarGrid() {
             type="button"
             onClick={() => goToDay(addDays(selectedDate, 1))}
             aria-label="Next day"
-            className={`shrink-0 rounded-lg border border-navy-600 p-2 text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100 ${FOCUS_RING}`}
+            className={`shrink-0 rounded-lg border border-navy-600 p-2 text-ink-300 hover:border-navy-500 hover:text-ink-100 ${PRESS} ${FOCUS_RING}`}
           >
             <ChevronRightIcon className="h-4 w-4" />
           </button>

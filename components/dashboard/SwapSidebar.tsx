@@ -53,7 +53,7 @@ export default function SwapSidebar() {
                 <button
                   type="button"
                   onClick={() => handleOpen(swap)}
-                  className="w-full rounded-lg border border-navy-700 bg-navy-950 px-3 py-2.5 text-left transition-colors hover:border-navy-500"
+                  className="w-full rounded-lg border border-navy-700 bg-navy-950 px-3 py-2.5 text-left transition-all duration-150 hover:border-navy-500 active:scale-[0.98]"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <span className="truncate text-sm font-medium text-ink-100">

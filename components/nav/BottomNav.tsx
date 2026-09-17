@@ -20,7 +20,7 @@ export default function BottomNav({ isTeamLead }: { isTeamLead: boolean }) {
           <Link
             key={item.href}
             href={item.href}
-            className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium ${
+            className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium transition-all duration-150 active:scale-95 ${
               active ? 'text-yellow-400' : 'text-ink-500'
             }`}
           >
@@ -34,7 +34,7 @@ export default function BottomNav({ isTeamLead }: { isTeamLead: boolean }) {
         type="button"
         onClick={signOut}
         disabled={loading}
-        className="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium text-ink-500 disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium text-ink-500 transition-all duration-150 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
       >
         <svg
           viewBox="0 0 24 24"

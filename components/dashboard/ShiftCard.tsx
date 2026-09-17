@@ -46,7 +46,7 @@ export default function ShiftCard({
       type="button"
       onClick={() => onClick(shift)}
       aria-label={ariaLabel}
-      className={`focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-yellow-400 w-full rounded-md border border-l-4 px-3 py-2 text-left transition-colors ${toneFor(
+      className={`focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-yellow-400 w-full rounded-md border border-l-4 px-3 py-2 text-left transition-all duration-150 active:scale-[0.98] ${toneFor(
         shift,
         currentUserId
       )}`}

@@ -23,7 +23,25 @@
   --color-yellow-300: #ffde47;
   --color-yellow-400: #ffd100;
   --color-yellow-500: #e6bc00;
+
+  /* Shared easing curves. --ease-* is a real Tailwind v4 theme namespace
+     (like --color-*), so these generate genuine ease-enter/ease-exit
+     utilities. ease-enter/ease-exit give overlays and panels a deliberate
+     decelerate-in / accelerate-out feel instead of one generic curve used
+     for both directions. */
+  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
 }
+
+/* Shared motion durations. Tailwind v4 has no --duration-* theme namespace
+   (verified: unlike --color-* or --ease-*, named duration tokens do not
+   generate utilities; duration-* is a plain numeric scale, e.g. any
+   duration-<n> resolves to <n>ms once used in real source). So the shared
+   system here is a convention, not a token: use exactly these three
+   numbers everywhere instead of ad-hoc values.
+     duration-150  = fast: presses and small feedback
+     duration-250  = base: standard UI transitions
+     duration-400  = slow: large/prominent movement (panels, overlays) */
 
 @media (prefers-color-scheme: dark) {
   :root {
