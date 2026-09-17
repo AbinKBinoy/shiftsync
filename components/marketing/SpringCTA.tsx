@@ -22,9 +22,14 @@ export default function SpringCTA({
   const [hovering, setHovering] = useState(false);
   const [pressed, setPressed] = useState(false);
 
-  const lift = useSpring(pressed ? 0 : hovering ? -3 : 0, { stiffness: 320, damping: 20 });
-  const scale = useSpring(pressed ? 0.96 : hovering ? 1.02 : 1, { stiffness: 420, damping: 22 });
-  const iconShift = useSpring(hovering && !pressed ? 4 : 0, { stiffness: 320, damping: 18 });
+  // Critically damped (damping = 2*sqrt(stiffness)): hover/press is a
+  // discrete UI state, not a gesture carrying momentum, so per Apple's
+  // fluid-interface guidance it settles cleanly with no bounce — the
+  // spring is still doing real work here (continuous, interruptible,
+  // starts from the current on-screen value), just without overshoot.
+  const lift = useSpring(pressed ? 0 : hovering ? -3 : 0, { stiffness: 320, damping: 36 });
+  const scale = useSpring(pressed ? 0.96 : hovering ? 1.02 : 1, { stiffness: 420, damping: 41 });
+  const iconShift = useSpring(hovering && !pressed ? 4 : 0, { stiffness: 320, damping: 36 });
 
   return (
     <Link

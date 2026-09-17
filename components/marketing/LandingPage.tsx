@@ -100,7 +100,7 @@ export default function LandingPage() {
                 </SpringCTA>
                 <Link
                   href="/login"
-                  className="inline-flex items-center justify-center rounded-lg border border-navy-600 px-6 py-3 text-sm font-semibold text-ink-100 transition-all duration-250 ease-spring hover:-translate-y-0.5 hover:bg-navy-800 active:translate-y-0 active:scale-[0.97]"
+                  className="inline-flex items-center justify-center rounded-lg border border-navy-600 px-6 py-3 text-sm font-semibold text-ink-100 transition-all duration-250 ease-enter hover:-translate-y-0.5 hover:bg-navy-800 active:translate-y-0 active:scale-[0.97]"
                 >
                   Log in
                 </Link>

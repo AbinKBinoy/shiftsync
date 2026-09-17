@@ -35,7 +35,7 @@ export default function FeatureCard({
     <div
       ref={cardRef}
       onMouseMove={handleMouseMove}
-      className="group relative h-full overflow-hidden rounded-2xl border border-navy-700 bg-navy-900 p-7 transition-all duration-250 ease-spring hover:-translate-y-1.5 hover:border-navy-600 hover:shadow-lg hover:shadow-black/20 sm:p-9"
+      className="group relative h-full overflow-hidden rounded-2xl border border-navy-700 bg-navy-900 p-7 transition-all duration-250 ease-enter hover:-translate-y-1.5 hover:border-navy-600 hover:shadow-lg hover:shadow-black/20 sm:p-9"
     >
       <div
         className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"

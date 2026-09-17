@@ -76,16 +76,19 @@ export default function ScheduleMockup() {
     return () => observer.disconnect();
   }, []);
 
-  // Slightly underdamped (damping well below 2*sqrt(stiffness)'s critical
-  // value) on purpose — it settles with a small overshoot rather than
-  // easing flat to rest, which is what makes it read as a physical spring
-  // instead of a fade. Because it's a spring, scrolling back and forth
-  // rapidly just redirects the existing motion instead of restarting or
-  // glitching.
-  const enter = useSpring(visible ? 1 : 0, { stiffness: 120, damping: 18 });
-  const tiltX = useSpring(tiltTarget.x, { stiffness: 150, damping: 18 });
-  const tiltY = useSpring(tiltTarget.y, { stiffness: 150, damping: 18 });
-  const hoverScale = useSpring(hovering ? 1.015 : 1, { stiffness: 150, damping: 18 });
+  // Critically damped (damping = 2*sqrt(stiffness)) — a scroll-triggered
+  // reveal carries no gesture momentum, so per Apple's fluid-interface
+  // guidance it should settle smoothly with no overshoot, not bounce.
+  // Because it's a spring, scrolling back and forth rapidly still just
+  // redirects the existing motion instead of restarting or glitching.
+  const enter = useSpring(visible ? 1 : 0, { stiffness: 120, damping: 22 });
+  // Underdamped on purpose: this is the one continuously gesture-driven
+  // value on the card (tracks the cursor), matching Apple's documented
+  // "Rotation" spring (damping ratio ~0.8 — bounce earned by real pointer
+  // input, unlike the discrete state changes above).
+  const tiltX = useSpring(tiltTarget.x, { stiffness: 150, damping: 20 });
+  const tiltY = useSpring(tiltTarget.y, { stiffness: 150, damping: 20 });
+  const hoverScale = useSpring(hovering ? 1.015 : 1, { stiffness: 150, damping: 25 });
 
   function handleMouseMove(e: ReactMouseEvent<HTMLDivElement>) {
     if (reducedMotionRef.current) return;
