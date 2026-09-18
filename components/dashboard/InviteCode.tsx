@@ -1,27 +1,28 @@
 'use client';
 
-import { useState } from 'react';
+import { toast } from 'sonner';
 
 export default function InviteCode({ code }: { code: string }) {
-  const [copied, setCopied] = useState(false);
-
   async function copy() {
-    await navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(code);
+      toast.success('Invite code copied');
+    } catch {
+      toast.error('Could not copy the invite code');
+    }
   }
 
   return (
     <div className="flex items-center gap-2">
-      <code className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-1.5 font-mono text-base tracking-[0.3em] text-blue-400">
+      <code className="rounded-lg border border-navy-700 bg-navy-950 px-3 py-1.5 font-mono text-base tracking-[0.3em] text-yellow-400">
         {code}
       </code>
       <button
         type="button"
         onClick={copy}
-        className="rounded-lg border border-zinc-700 px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:border-zinc-600 hover:text-zinc-50"
+        className="rounded-lg border border-navy-600 px-3 py-1.5 text-sm text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100"
       >
-        {copied ? 'Copied' : 'Copy'}
+        Copy
       </button>
     </div>
   );

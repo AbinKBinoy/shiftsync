@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { useDashboard } from './DashboardData';
 import type { Shift } from '@/types';
 
@@ -22,8 +23,6 @@ export default function NameLinker({
   const [reloadToken, setReloadToken] = useState(0);
   const [assignments, setAssignments] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<string | null>(null);
 
   // Unlinked shifts span the whole schedule, not just the visible week, so this
   // fetches independently of the calendar.
@@ -110,7 +109,7 @@ export default function NameLinker({
       .map(([employee_name, user_id]) => ({ employee_name, user_id }));
 
     if (links.length === 0) {
-      setError('Match at least one name to a member first.');
+      toast.error('Match at least one name to a member first.');
       return;
     }
 
@@ -118,15 +117,13 @@ export default function NameLinker({
       .map(({ employee_name, user_id }) => conflictFor(user_id, employee_name))
       .find(Boolean);
     if (conflict) {
-      setError(
+      toast.error(
         `One of these members is already linked to ${conflict} in this department — a member can only be linked to one name.`
       );
       return;
     }
 
     setBusy(true);
-    setError(null);
-    setResult(null);
 
     try {
       const res = await fetch('/api/shifts/link', {
@@ -137,16 +134,16 @@ export default function NameLinker({
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error ?? 'Linking failed');
+        toast.error(data.error ?? 'Linking failed');
         return;
       }
 
-      setResult(`Linked ${data.updated} shift${data.updated === 1 ? '' : 's'}.`);
+      toast.success(`Linked ${data.updated} shift${data.updated === 1 ? '' : 's'}.`);
       setAssignments({});
       setReloadToken((t) => t + 1);
       refresh();
     } catch {
-      setError('Could not reach the server. Please try again.');
+      toast.error('Could not reach the server. Please try again.');
     } finally {
       setBusy(false);
     }
@@ -226,21 +223,6 @@ export default function NameLinker({
           );
         })}
       </ul>
-
-      {error && (
-        <p
-          role="alert"
-          className="mt-4 rounded-lg border border-red-900 bg-red-950 px-3 py-2 text-sm text-red-300"
-        >
-          {error}
-        </p>
-      )}
-
-      {result && (
-        <p className="mt-4 rounded-lg border border-green-900 bg-green-950 px-3 py-2 text-sm text-green-300">
-          {result}
-        </p>
-      )}
 
       <div className="mt-4 flex items-center gap-3">
         <button

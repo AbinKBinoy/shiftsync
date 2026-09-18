@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import { useDashboard } from './DashboardData';
 import CommentThread from './CommentThread';
 import { formatFullDate, formatTime } from '@/lib/dates';
@@ -42,7 +43,6 @@ export default function ShiftDetailPanel({
     useDashboard();
 
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [tradeOpen, setTradeOpen] = useState(false);
   const [offeredShiftId, setOfferedShiftId] = useState('');
 
@@ -89,11 +89,55 @@ export default function ShiftDetailPanel({
     return () => clearTimeout(timeout);
   }, [shiftProp, renderedShift]);
 
+  const panelRef = useRef<HTMLElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  // Whatever had focus right before the panel opened (the shift card that
+  // triggered it) — restored on close so focus doesn't drop to <body>.
+  const triggerRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!shiftProp) return;
+    triggerRef.current = document.activeElement as HTMLElement | null;
+    // Same rAF-after-mount reasoning as the `entered` effect above: the
+    // close button isn't focusable as a real, laid-out element until after
+    // this render commits.
+    const raf = requestAnimationFrame(() => closeButtonRef.current?.focus());
+    return () => cancelAnimationFrame(raf);
+  }, [shiftProp]);
+
+  useEffect(() => {
+    if (shiftProp) return;
+    triggerRef.current?.focus();
+  }, [shiftProp]);
+
   useEffect(() => {
     if (!shiftProp) return;
 
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+
+      // Manual focus trap: without a headless dialog primitive, Tab would
+      // otherwise walk out into the page behind this drawer while it's open.
+      const panel = panelRef.current;
+      if (!panel) return;
+      const focusable = panel.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     }
 
     window.addEventListener('keydown', onKeyDown);
@@ -145,19 +189,18 @@ export default function ShiftDetailPanel({
 
   async function act(path: string, init?: RequestInit) {
     setBusy(true);
-    setError(null);
     try {
       const res = await fetch(path, init);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error ?? 'That action failed');
+        toast.error(data.error ?? 'That action failed');
         return;
       }
       setTradeOpen(false);
       setOfferedShiftId('');
       refresh();
     } catch {
-      setError('Could not reach the server. Please try again.');
+      toast.error('Could not reach the server. Please try again.');
     } finally {
       setBusy(false);
     }
@@ -198,6 +241,7 @@ export default function ShiftDetailPanel({
       />
 
       <aside
+        ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-label="Shift details"
@@ -208,6 +252,7 @@ export default function ShiftDetailPanel({
         <div className="flex items-start justify-between gap-4">
           <h2 className="text-lg font-medium text-ink-100">Shift details</h2>
           <button
+            ref={closeButtonRef}
             type="button"
             onClick={onClose}
             aria-label="Close"
@@ -264,15 +309,6 @@ export default function ShiftDetailPanel({
             </Field>
           )}
         </dl>
-
-        {error && (
-          <p
-            role="alert"
-            className="mt-5 rounded-lg border border-red-900 bg-red-950 px-3 py-2 text-sm text-red-300"
-          >
-            {error}
-          </p>
-        )}
 
         <div className="mt-6 flex flex-col gap-2">
           {!shift.user_id &&

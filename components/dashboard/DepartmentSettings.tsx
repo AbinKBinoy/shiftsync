@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 // A plain on/off state change with no gesture behind it — a simple CSS
 // transition on the thumb's position is the right amount of motion (per the
@@ -51,8 +52,6 @@ export default function DepartmentSettings({
 }) {
   const [requireApproval, setRequireApproval] = useState(initialRequireApproval);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [justSaved, setJustSaved] = useState(false);
 
   async function handleToggle() {
     const next = !requireApproval;
@@ -60,8 +59,6 @@ export default function DepartmentSettings({
     // it reverts below only if the save actually fails.
     setRequireApproval(next);
     setSaving(true);
-    setError(null);
-    setJustSaved(false);
 
     try {
       const res = await fetch(`/api/departments/${departmentId}`, {
@@ -73,15 +70,14 @@ export default function DepartmentSettings({
 
       if (!res.ok) {
         setRequireApproval(!next);
-        setError(data.error ?? 'Could not save that change');
+        toast.error(data.error ?? 'Could not save that change');
         return;
       }
 
-      setJustSaved(true);
-      setTimeout(() => setJustSaved(false), 2000);
+      toast.success('Saved');
     } catch {
       setRequireApproval(!next);
-      setError('Could not reach the server. Please try again.');
+      toast.error('Could not reach the server. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -115,19 +111,6 @@ export default function DepartmentSettings({
             onChange={handleToggle}
           />
         </div>
-
-        {error && (
-          <p
-            role="alert"
-            className="mt-4 rounded-lg border border-red-900 bg-red-950 px-3 py-2 text-sm text-red-300"
-          >
-            {error}
-          </p>
-        )}
-
-        {justSaved && !error && (
-          <p className="mt-4 text-xs text-ink-500">Saved.</p>
-        )}
       </div>
     </section>
   );

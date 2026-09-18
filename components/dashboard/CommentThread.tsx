@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
+import { toast } from 'sonner';
 import { formatRelativeTime } from '@/lib/dates';
 import type { Comment, CommentTargetType } from '@/types';
 
@@ -22,7 +23,6 @@ export default function CommentThread({
   const [comments, setComments] = useState<Comment[] | null>(null);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   // Comments present at load render at rest; only ones added after that (by
   // this client, this session) get the entrance animation — otherwise
@@ -77,7 +77,6 @@ export default function CommentThread({
     if (!content || sending || comments === null) return;
 
     setSending(true);
-    setError(null);
 
     try {
       const res = await fetch('/api/comments', {
@@ -88,7 +87,7 @@ export default function CommentThread({
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        setError(data.error ?? 'Could not post that comment');
+        toast.error(data.error ?? 'Could not post that comment');
         return;
       }
 
@@ -96,7 +95,7 @@ export default function CommentThread({
       setNewlyAddedIds((prev) => new Set(prev).add(data.comment.id));
       setText('');
     } catch {
-      setError('Could not reach the server. Please try again.');
+      toast.error('Could not reach the server. Please try again.');
     } finally {
       setSending(false);
     }
@@ -149,15 +148,6 @@ export default function CommentThread({
           })
         )}
       </div>
-
-      {error && (
-        <p
-          role="alert"
-          className="mt-3 rounded-lg border border-red-900 bg-red-950 px-3 py-2 text-xs text-red-300"
-        >
-          {error}
-        </p>
-      )}
 
       <div className="mt-3 flex items-center gap-2">
         <input

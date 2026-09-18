@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { useDashboard } from './DashboardData';
 
 const positiveButton =
@@ -22,25 +23,24 @@ function formatClaimTime(value: string): string {
 export default function ShiftClaimApprovals() {
   const { claims, claimsLoading, refresh } = useDashboard();
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const pending = claims.filter((c) => c.status === 'pending');
 
   async function resolve(claimId: string, action: 'approve' | 'reject') {
     setBusyId(claimId);
-    setError(null);
     try {
       const res = await fetch(`/api/shift-claims/${claimId}/${action}`, {
         method: 'PATCH',
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error ?? 'That action failed');
+        toast.error(data.error ?? 'That action failed');
         return;
       }
+      toast.success(action === 'approve' ? 'Claim approved' : 'Claim rejected');
       refresh();
     } catch {
-      setError('Could not reach the server. Please try again.');
+      toast.error('Could not reach the server. Please try again.');
     } finally {
       setBusyId(null);
     }
@@ -58,15 +58,6 @@ export default function ShiftClaimApprovals() {
       <p className="mt-1 text-sm text-ink-500">
         Members asking to be linked to a name from the schedule photo.
       </p>
-
-      {error && (
-        <p
-          role="alert"
-          className="mt-4 rounded-lg border border-red-900 bg-red-950 px-3 py-2 text-sm text-red-300"
-        >
-          {error}
-        </p>
-      )}
 
       <ul className="mt-4 space-y-2">
         {pending.map((claim) => (

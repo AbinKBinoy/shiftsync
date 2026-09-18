@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { SVGProps, TouchEvent } from 'react';
+import { toast } from 'sonner';
 import ShiftCard from './ShiftCard';
 import { useDashboard } from './DashboardData';
 import {
@@ -72,6 +73,14 @@ export default function CalendarGrid() {
   // land anywhere inside that window without a separate week concept.
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+
+  // shiftsError comes from DashboardData's fetch, not a local imperative
+  // action — a stable id means a second failed fetch (a different week, the
+  // same message) updates this one toast instead of stacking duplicates,
+  // and it also absorbs React StrictMode's dev double-invoke of effects.
+  useEffect(() => {
+    if (shiftsError) toast.error(shiftsError, { id: 'shifts-error' });
+  }, [shiftsError]);
 
   const days = useMemo(() => weekDays(weekStart), [weekStart]);
 
@@ -241,15 +250,6 @@ export default function CalendarGrid() {
             : `${selectedDayShifts.length} shift${selectedDayShifts.length === 1 ? '' : 's'} today`}
         </p>
       </div>
-
-      {shiftsError && (
-        <p
-          role="alert"
-          className="mt-4 rounded-lg border border-red-900 bg-red-950 px-3 py-2 text-sm text-red-300"
-        >
-          {shiftsError}
-        </p>
-      )}
 
       {/* Desktop 7-column week grid — fills remaining height so the calendar
           reads as a substantial grid rather than a small card. */}
