@@ -40,7 +40,7 @@ export default function RevealOnScroll({
     <div
       ref={ref}
       style={delayMs ? { transitionDelay: `${delayMs}ms` } : undefined}
-      className={`transition-all duration-[350ms] ease-out ${
+      className={`transition-[transform,opacity] duration-400 ease-enter ${
         visible ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0'
       } ${className}`}
     >

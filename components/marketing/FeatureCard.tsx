@@ -35,10 +35,28 @@ export default function FeatureCard({
     <div
       ref={cardRef}
       onMouseMove={handleMouseMove}
-      className="group relative h-full overflow-hidden rounded-2xl border border-navy-700 bg-navy-900 p-7 transition-all duration-250 ease-enter hover:-translate-y-1.5 hover:border-navy-600 hover:shadow-lg hover:shadow-black/20 sm:p-9"
+      className={`group relative h-full overflow-hidden rounded-2xl border p-7 transition-[transform,border-color,box-shadow] duration-250 ease-enter hover:-translate-y-1.5 hover:shadow-lg hover:shadow-black/20 sm:p-9 ${
+        featured
+          ? 'border-yellow-500/20 bg-navy-900 hover:border-yellow-500/30'
+          : 'border-navy-700 bg-navy-900 hover:border-navy-600'
+      }`}
     >
+      {/* The flagship feature gets a permanent, subtle wash instead of only
+          a hover glow — a lighter/warmer material calling out the primary
+          card, distinct from the neutral treatment on every other one. */}
+      {featured && (
+        <div
+          className="pointer-events-none absolute inset-0 opacity-100"
+          style={{
+            background:
+              'radial-gradient(circle at 15% 0%, rgba(255,209,0,0.06), transparent 55%)',
+          }}
+          aria-hidden="true"
+        />
+      )}
+
       <div
-        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-250 group-hover:opacity-100"
         style={{
           background:
             'radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255,209,0,0.08), transparent 60%)',

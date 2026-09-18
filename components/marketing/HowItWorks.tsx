@@ -40,6 +40,7 @@ function StepCard({
   body,
   index,
   closeness,
+  connectorProgress,
   isLast,
 }: {
   icon: StepIconType;
@@ -51,6 +52,13 @@ function StepCard({
   // direction — driven directly by scroll position every frame, not a
   // threshold that snaps and leaves dead zones in between.
   closeness: number;
+  // Continuous 0..1: 0 right as this step centers, ramping to 1 by the
+  // time the *next* step centers — i.e. "how far past this step have I
+  // scrolled toward the next one." Drives the connector fill below, so the
+  // line between two icons finishes lighting up exactly when the user
+  // arrives at the next one, rather than pre-completing at this step's own
+  // peak (which `closeness` would do if reused directly).
+  connectorProgress: number;
   isLast: boolean;
 }) {
   const active = closeness > 0.5;
@@ -64,13 +72,19 @@ function StepCard({
     >
       {!isLast && (
         <div
-          className="pointer-events-none absolute top-6 left-full w-8 border-t border-dashed border-navy-600"
+          className="pointer-events-none absolute top-6 left-full w-8"
           aria-hidden="true"
-        />
+        >
+          <div className="border-t border-dashed border-navy-600" />
+          <div
+            className="absolute inset-0 origin-left border-t-2 border-yellow-400"
+            style={{ transform: `scaleX(${connectorProgress})` }}
+          />
+        </div>
       )}
       <div className="flex items-center gap-3">
         <span
-          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border transition-all duration-500 ${
+          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border transition-[border-color,background-color,color,box-shadow] duration-500 ${
             active
               ? 'border-yellow-400/60 bg-yellow-400/10 text-yellow-300 shadow-[0_0_24px_rgba(255,209,0,0.18)]'
               : 'border-navy-700 bg-navy-800 text-ink-500'
@@ -143,6 +157,7 @@ export default function HowItWorks() {
             <div className="mt-16 grid grid-cols-4 gap-8">
               {STEPS.map((step, i) => {
                 const closeness = clamp(1 - Math.abs(stepProgress - (i + 0.5)), 0, 1);
+                const connectorProgress = clamp(stepProgress - (i + 0.5), 0, 1);
                 return (
                   <StepCard
                     key={step.title}
@@ -151,6 +166,7 @@ export default function HowItWorks() {
                     body={step.body}
                     index={i}
                     closeness={closeness}
+                    connectorProgress={connectorProgress}
                     isLast={i === STEPS.length - 1}
                   />
                 );

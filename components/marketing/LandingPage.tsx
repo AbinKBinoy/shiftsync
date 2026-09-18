@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import ScheduleMockup from './ScheduleMockup';
 import SiteHeader from './SiteHeader';
@@ -61,6 +62,24 @@ export default function LandingPage() {
   const currentYear = new Date().getFullYear();
   const scrollY = useScrollY();
 
+  // Hero copy is above the fold and mounts already in view, so it can't rely
+  // on RevealOnScroll's IntersectionObserver (nothing to intersect with —
+  // it's already there). Fires once via rAF instead, matching the same
+  // fade+rise language as everything else on the page. The rAF tick ensures
+  // the "hidden" starting styles actually paint on the first frame before
+  // flipping, so the transition doesn't get skipped.
+  const [heroVisible, setHeroVisible] = useState(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setHeroVisible(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+  const heroEnter = (delayMs: number) => ({
+    className: `transition-[transform,opacity] duration-[550ms] ease-enter ${
+      heroVisible ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'
+    }`,
+    style: { transitionDelay: `${delayMs}ms` },
+  });
+
   // Foreground (text) tracks scroll 1:1, as it always would. The mockup
   // lags slightly behind — a small positive offset that grows with scroll —
   // reading as a layer sitting a little further back, the classic
@@ -81,17 +100,25 @@ export default function LandingPage() {
         >
           <div className="grid items-center gap-14 lg:grid-cols-2 lg:gap-10">
             <div>
-              <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-ink-100 sm:text-5xl">
+              <h1
+                className={`text-4xl font-bold leading-[1.1] tracking-tight text-ink-100 sm:text-5xl ${heroEnter(0).className}`}
+              >
                 Turn a photo of your schedule into a calendar your whole team can use
               </h1>
-              <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-300">
+              <p
+                className={`mt-6 max-w-xl text-lg leading-relaxed text-ink-300 ${heroEnter(90).className}`}
+                style={heroEnter(90).style}
+              >
                 Snap a photo of the schedule posted at work. Claude Vision AI extracts
                 every shift automatically, your team joins with an invite code, and
                 dropping, trading, or claiming a shift takes one tap, so there’s no
                 more group chat chaos.
               </p>
 
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <div
+                className={`mt-8 flex flex-col gap-3 sm:flex-row ${heroEnter(180).className}`}
+                style={heroEnter(180).style}
+              >
                 <SpringCTA
                   href="/signup"
                   className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-yellow-400 px-6 py-3 text-sm font-semibold text-navy-950 shadow-lg shadow-yellow-400/10 transition-colors hover:bg-yellow-300"
@@ -100,13 +127,16 @@ export default function LandingPage() {
                 </SpringCTA>
                 <Link
                   href="/login"
-                  className="inline-flex items-center justify-center rounded-lg border border-navy-600 px-6 py-3 text-sm font-semibold text-ink-100 transition-all duration-250 ease-enter hover:-translate-y-0.5 hover:bg-navy-800 active:translate-y-0 active:scale-[0.97]"
+                  className="inline-flex items-center justify-center rounded-lg border border-navy-600 px-6 py-3 text-sm font-semibold text-ink-100 transition-[transform,background-color] duration-250 ease-enter hover:-translate-y-0.5 hover:bg-navy-800 active:translate-y-0 active:scale-[0.97] active:duration-150"
                 >
                   Log in
                 </Link>
               </div>
 
-              <p className="mt-4 text-sm text-ink-500">
+              <p
+                className={`mt-4 text-sm text-ink-500 ${heroEnter(260).className}`}
+                style={heroEnter(260).style}
+              >
                 Free to use. No credit card required.
               </p>
             </div>
