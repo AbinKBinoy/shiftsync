@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { SVGProps } from 'react';
 import { useRouter } from 'next/navigation';
-import { exitAnimationDelay, MOTION_MS } from '@/lib/motion';
+import { exitAnimationDelay, MOTION_MS, PRESS } from '@/lib/motion';
 import { formatRelativeTime } from '@/lib/dates';
 import type { Notification, NotificationType } from '@/types';
 
@@ -178,7 +178,7 @@ export default function NotificationBell({
           aria-haspopup="menu"
           aria-expanded={open}
           aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
-          className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-navy-600 text-ink-300 transition-all duration-150 hover:border-navy-500 hover:text-ink-100 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-900"
+          className={`relative flex h-9 w-9 items-center justify-center rounded-lg border border-navy-600 text-ink-300 hover:border-navy-500 hover:text-ink-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-900 ${PRESS}`}
         >
           <BellIcon className="h-5 w-5" />
           {unreadCount > 0 && (
@@ -203,7 +203,7 @@ export default function NotificationBell({
                 <button
                   type="button"
                   onClick={markAllAsRead}
-                  className="rounded text-xs font-medium text-yellow-400 transition-transform duration-150 hover:text-yellow-300 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
+                  className={`rounded text-xs font-medium text-yellow-400 hover:text-yellow-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 ${PRESS}`}
                 >
                   Mark all as read
                 </button>
@@ -224,7 +224,7 @@ export default function NotificationBell({
                     type="button"
                     role="menuitem"
                     onClick={() => handleSelect(notification)}
-                    className={`flex w-full flex-col gap-1 border-b border-navy-800 px-4 py-3 text-left transition-all duration-150 last:border-b-0 hover:bg-navy-800/60 active:scale-[0.98] focus:outline-none focus-visible:bg-navy-800/60 ${
+                    className={`flex w-full flex-col gap-1 border-b border-navy-800 px-4 py-3 text-left last:border-b-0 hover:bg-navy-800/60 focus:outline-none focus-visible:bg-navy-800/60 ${PRESS} ${
                       notification.read ? '' : 'bg-navy-800/30'
                     }`}
                   >

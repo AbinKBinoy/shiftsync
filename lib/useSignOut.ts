@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
 
 export function useSignOut() {
@@ -11,11 +12,21 @@ export function useSignOut() {
   async function signOut() {
     setLoading(true);
 
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        toast.error('Could not sign out. Please try again.');
+        return;
+      }
 
-    router.push('/login');
-    router.refresh();
+      router.push('/login');
+      router.refresh();
+    } catch {
+      toast.error('Could not reach the server. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return { signOut, loading };

@@ -2,6 +2,7 @@
 
 import { useDashboard } from './DashboardData';
 import { formatTime, parseISODate } from '@/lib/dates';
+import { PRESS } from '@/lib/motion';
 import type { Shift, SwapRequest } from '@/types';
 
 const ACTIVE = ['open', 'claimed', 'pending_approval'];
@@ -53,7 +54,7 @@ export default function SwapSidebar() {
                 <button
                   type="button"
                   onClick={() => handleOpen(swap)}
-                  className="w-full rounded-lg border border-navy-700 bg-navy-950 px-3 py-2.5 text-left transition-all duration-150 hover:border-navy-500 active:scale-[0.98]"
+                  className={`w-full rounded-lg border border-navy-700 bg-navy-950 px-3 py-2.5 text-left hover:border-navy-500 ${PRESS}`}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <span className="truncate text-sm font-medium text-ink-100">

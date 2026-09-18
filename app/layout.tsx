@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
@@ -17,6 +17,18 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://shiftsync.win"),
   title: "ShiftSync",
   description: "Collaborative shift management for frontline teams",
+};
+
+// viewportFit: 'cover' lets the page draw under the notch/home-indicator so
+// env(safe-area-inset-*) resolves to real values instead of 0 (BottomNav
+// relies on this). themeColor is the literal hex of --color-navy-950 in
+// globals.css — this app has no light mode, so one value covers both
+// schemes; keep the two in sync if that token ever changes.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#0b1220",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { useDashboard } from './DashboardData';
 import CommentThread from './CommentThread';
 import { formatFullDate, formatTime } from '@/lib/dates';
-import { exitAnimationDelay, MOTION_MS } from '@/lib/motion';
+import { exitAnimationDelay, MOTION_MS, PRESS } from '@/lib/motion';
 import type { Shift, ShiftStatus } from '@/types';
 
 type ShiftDetailPanelProps = {
@@ -19,12 +19,9 @@ const STATUS_LABELS: Record<ShiftStatus, string> = {
   swap_pending: 'Swap pending',
 };
 
-const positiveButton =
-  'rounded-lg bg-yellow-400 px-3 py-2 text-sm font-semibold text-navy-950 transition-all duration-150 hover:bg-yellow-300 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50';
-const neutralButton =
-  'rounded-lg border border-navy-600 px-3 py-2 text-sm font-medium text-ink-300 transition-all duration-150 hover:border-navy-500 hover:text-ink-100 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50';
-const destructiveButton =
-  'rounded-lg border border-rose-800/60 bg-rose-950/40 px-3 py-2 text-sm font-medium text-rose-300 transition-all duration-150 hover:border-rose-700 hover:bg-rose-950/70 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50';
+const positiveButton = `rounded-lg bg-yellow-400 px-3 py-2 text-sm font-semibold text-navy-950 hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-50 ${PRESS}`;
+const neutralButton = `rounded-lg border border-navy-600 px-3 py-2 text-sm font-medium text-ink-300 hover:border-navy-500 hover:text-ink-100 disabled:cursor-not-allowed disabled:opacity-50 ${PRESS}`;
+const destructiveButton = `rounded-lg border border-rose-800/60 bg-rose-950/40 px-3 py-2 text-sm font-medium text-rose-300 hover:border-rose-700 hover:bg-rose-950/70 disabled:cursor-not-allowed disabled:opacity-50 ${PRESS}`;
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -256,7 +253,7 @@ export default function ShiftDetailPanel({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="rounded-md border border-navy-600 px-2 py-1 text-sm leading-none text-ink-300 transition-all duration-150 hover:border-navy-500 hover:text-ink-100 active:scale-95"
+            className={`rounded-md border border-navy-600 px-2 py-1 text-sm leading-none text-ink-300 hover:border-navy-500 hover:text-ink-100 ${PRESS}`}
           >
             ✕
           </button>

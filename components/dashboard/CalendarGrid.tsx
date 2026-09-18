@@ -5,6 +5,7 @@ import type { SVGProps, TouchEvent } from 'react';
 import { toast } from 'sonner';
 import ShiftCard from './ShiftCard';
 import { useDashboard } from './DashboardData';
+import { PRESS } from '@/lib/motion';
 import {
   WEEKDAY_LABELS,
   addDays,
@@ -27,10 +28,6 @@ const SWIPE_THRESHOLD_PX = 50;
 // navy-900 background, so the ring offset reads cleanly against it.
 const FOCUS_RING =
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-900';
-
-// Shared press feedback — matters most here on touch, where :hover never
-// fires at all, so this is the only acknowledgement a tap gets.
-const PRESS = 'transition-all duration-150 active:scale-[0.97]';
 
 function ChevronLeftIcon(props: SVGProps<SVGSVGElement>) {
   return (

@@ -11,6 +11,16 @@ export const MOTION_MS = {
   slow: 400,
 } as const;
 
+// Shared press-feedback treatment for any pressable element — instant
+// scale-down on :active confirming the interface heard the tap. 0.97 matches
+// the value `animate`'s own reference examples use throughout, and duration
+// mirrors MOTION_MS.fast above (kept as a literal, not interpolated, so
+// Tailwind's static class scanner can see it). Previously hand-retyped
+// independently across 8+ components with drifting scale values
+// (0.95/0.97/0.98) and inconsistent `transition-all`/`transition-transform`
+// scoping — this is the one canonical string all of them should share.
+export const PRESS = 'transition-all duration-150 active:scale-[0.97]';
+
 export function prefersReducedMotion(): boolean {
   if (typeof window === 'undefined') return false;
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;

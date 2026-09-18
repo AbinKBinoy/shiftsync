@@ -1,6 +1,7 @@
 'use client';
 
 import { toast } from 'sonner';
+import { PRESS } from '@/lib/motion';
 
 export default function InviteCode({ code }: { code: string }) {
   async function copy() {
@@ -20,7 +21,7 @@ export default function InviteCode({ code }: { code: string }) {
       <button
         type="button"
         onClick={copy}
-        className="rounded-lg border border-navy-600 px-3 py-1.5 text-sm text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100"
+        className={`rounded-lg border border-navy-600 px-3 py-1.5 text-sm text-ink-300 hover:border-navy-500 hover:text-ink-100 ${PRESS}`}
       >
         Copy
       </button>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { PRESS } from '@/lib/motion';
 
 export default function CalendarSync() {
   const [token, setToken] = useState<string | null>(null);
@@ -72,20 +73,20 @@ export default function CalendarSync() {
           href={googleUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-lg border border-navy-600 px-4 py-2 text-sm font-medium text-ink-100 transition-colors hover:border-navy-500 hover:text-ink-100"
+          className={`rounded-lg border border-navy-600 px-4 py-2 text-sm font-medium text-ink-100 hover:border-navy-500 hover:text-ink-100 ${PRESS}`}
         >
           Add to Google Calendar
         </a>
         <a
           href={webcalUrl}
-          className="rounded-lg border border-navy-600 px-4 py-2 text-sm font-medium text-ink-100 transition-colors hover:border-navy-500 hover:text-ink-100"
+          className={`rounded-lg border border-navy-600 px-4 py-2 text-sm font-medium text-ink-100 hover:border-navy-500 hover:text-ink-100 ${PRESS}`}
         >
           Add to Apple/Outlook Calendar
         </a>
         <button
           type="button"
           onClick={copyLink}
-          className="rounded-lg border border-navy-600 px-4 py-2 text-sm font-medium text-ink-300 transition-colors hover:border-navy-500 hover:text-ink-100"
+          className={`rounded-lg border border-navy-600 px-4 py-2 text-sm font-medium text-ink-300 hover:border-navy-500 hover:text-ink-100 ${PRESS}`}
         >
           Copy link
         </button>

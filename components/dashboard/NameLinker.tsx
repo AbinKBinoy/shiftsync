@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { useDashboard } from './DashboardData';
+import { PRESS } from '@/lib/motion';
 import type { Shift } from '@/types';
 
 // Deliberately no email field — member addresses must not reach this component.
@@ -229,7 +230,7 @@ export default function NameLinker({
           type="button"
           onClick={handleLinkAll}
           disabled={busy || selectedCount === 0}
-          className="rounded-lg bg-yellow-400 px-4 py-2 text-sm font-semibold text-navy-950 transition-colors hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-50"
+          className={`rounded-lg bg-yellow-400 px-4 py-2 text-sm font-semibold text-navy-950 hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-50 ${PRESS}`}
         >
           {busy ? 'Linking…' : 'Link All'}
         </button>

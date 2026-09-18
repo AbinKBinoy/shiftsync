@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { toast } from 'sonner';
 import { formatRelativeTime } from '@/lib/dates';
+import { PRESS } from '@/lib/motion';
 import type { Comment, CommentTargetType } from '@/types';
 
 function initials(name: string): string {
@@ -164,7 +165,7 @@ export default function CommentThread({
           type="button"
           onClick={handleSend}
           disabled={!canSend}
-          className="shrink-0 rounded-lg bg-yellow-400 px-3 py-2 text-sm font-semibold text-navy-950 transition-all duration-150 hover:bg-yellow-300 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50"
+          className={`shrink-0 rounded-lg bg-yellow-400 px-3 py-2 text-sm font-semibold text-navy-950 hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-50 ${PRESS}`}
         >
           {sending ? 'Sending…' : 'Send'}
         </button>

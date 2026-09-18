@@ -3,11 +3,10 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useDashboard } from './DashboardData';
+import { PRESS } from '@/lib/motion';
 
-const positiveButton =
-  'rounded-lg bg-yellow-400 px-3 py-1.5 text-sm font-semibold text-navy-950 transition-all duration-150 hover:bg-yellow-300 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50';
-const destructiveButton =
-  'rounded-lg border border-rose-800/60 bg-rose-950/40 px-3 py-1.5 text-sm font-medium text-rose-300 transition-all duration-150 hover:border-rose-700 hover:bg-rose-950/70 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50';
+const positiveButton = `rounded-lg bg-yellow-400 px-3 py-1.5 text-sm font-semibold text-navy-950 hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-50 ${PRESS}`;
+const destructiveButton = `rounded-lg border border-rose-800/60 bg-rose-950/40 px-3 py-1.5 text-sm font-medium text-rose-300 hover:border-rose-700 hover:bg-rose-950/70 disabled:cursor-not-allowed disabled:opacity-50 ${PRESS}`;
 
 // claim.created_at is a full timestamp, unlike shifts.date — lib/dates.ts's
 // formatters assume plain 'YYYY-MM-DD' dates, so this one stays local here.

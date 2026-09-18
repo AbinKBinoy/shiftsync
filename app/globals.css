@@ -1,10 +1,5 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -43,11 +38,24 @@
      duration-250  = base: standard UI transitions
      duration-400  = slow: large/prominent movement (panels, overlays) */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* This app has no light mode — every page explicitly paints bg-navy-950 —
+   so these are the only values, not a dark override of a light default.
+   Previously :root defaulted to a light background here, only flipping to
+   dark behind a prefers-color-scheme query: a light-OS visitor would get a
+   white flash through any unstyled edge (e.g. the safe-area gutter) before
+   or without that query ever mattering. Aliased to the real tokens above
+   rather than a duplicate hex, so they can't drift apart. */
+:root {
+  --background: var(--color-navy-950);
+  --foreground: var(--color-ink-100);
+}
+
+html {
+  /* The default gray/blue flash Safari/Chrome paint over any tapped element
+     with a click handler — the single loudest "this is a website" tell on
+     mobile. Every tappable element in this app already has its own
+     :active state, so nothing depends on the browser's own highlight. */
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {

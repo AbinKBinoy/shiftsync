@@ -12,7 +12,7 @@ export default function BottomNav({ isTeamLead }: { isTeamLead: boolean }) {
   const items = NAV_ITEMS.filter((item) => !item.teamLeadOnly || isTeamLead);
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch border-t border-navy-800 bg-navy-900 md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch border-t border-navy-800 bg-navy-900 pb-[env(safe-area-inset-bottom,0px)] md:hidden">
       {items.map((item) => {
         const active =
           pathname === item.href || pathname?.startsWith(`${item.href}/`);
