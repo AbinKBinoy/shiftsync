@@ -64,7 +64,7 @@ export default function CalendarSync() {
     <section className="rounded-2xl border border-navy-700 bg-navy-900 p-6 shadow-xl shadow-black/20">
       <h2 className="text-sm font-medium text-ink-300">Sync to your calendar</h2>
       <p className="mt-1 text-sm text-ink-500">
-        Add this once and new shifts will appear automatically — no need to
+        Add this once and new shifts will appear automatically, no need to
         re-download.
       </p>
 
@@ -92,13 +92,8 @@ export default function CalendarSync() {
         </button>
       </div>
 
-      <p className="mt-2 text-xs text-ink-500">
-        Won&apos;t work until this app is deployed — localhost isn&apos;t
-        reachable from Google&apos;s servers.
-      </p>
-
       <p className="mt-3 text-xs text-ink-500">
-        Keep this link private — anyone who has it can see your shifts.
+        Keep this link private, anyone who has it can see your shifts.
       </p>
     </section>
   );
