@@ -76,6 +76,7 @@ export interface Shift {
   status: ShiftStatus;
   created_at: string;
   profile?: Profile;
+  comment_count?: number;
 }
 
 export interface SwapRequest {

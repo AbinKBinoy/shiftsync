@@ -1,5 +1,6 @@
 'use client';
 
+import type { SVGProps } from 'react';
 import { formatTime } from '@/lib/dates';
 import type { Shift } from '@/types';
 
@@ -8,6 +9,14 @@ type ShiftCardProps = {
   currentUserId: string;
   onClick: (shift: Shift) => void;
 };
+
+function CommentIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} {...props}>
+      <path d="M4 5h16v11H8l-4 4V5Z" />
+    </svg>
+  );
+}
 
 // Status carries the more urgent signal, so an open or pending shift keeps its
 // colour even when it belongs to the current user.
@@ -37,16 +46,19 @@ export default function ShiftCard({
 }: ShiftCardProps) {
   const isMine = Boolean(shift.user_id) && shift.user_id === currentUserId;
   const timeRange = `${formatTime(shift.start_time)}–${formatTime(shift.end_time)}`;
+  const commentCount = shift.comment_count ?? 0;
   const ariaLabel = `${shift.employee_name}, ${timeRange}${
     isMine ? ', your shift' : ''
-  }${statusSuffixFor(shift)}`;
+  }${statusSuffixFor(shift)}${
+    commentCount > 0 ? `, ${commentCount} comment${commentCount === 1 ? '' : 's'}` : ''
+  }`;
 
   return (
     <button
       type="button"
       onClick={() => onClick(shift)}
       aria-label={ariaLabel}
-      className={`focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-yellow-400 w-full rounded-md border border-l-4 px-3 py-2 text-left transition-all duration-150 active:scale-[0.98] ${toneFor(
+      className={`relative focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-yellow-400 w-full rounded-md border border-l-4 px-3 py-2 text-left transition-all duration-150 active:scale-[0.98] ${toneFor(
         shift,
         currentUserId
       )}`}
@@ -69,6 +81,16 @@ export default function ShiftCard({
         {timeRange}
         {isMine && <span className="ml-1 text-yellow-400">you</span>}
       </div>
+
+      {commentCount > 0 && (
+        <span
+          aria-hidden="true"
+          className="absolute bottom-1.5 right-1.5 flex items-center gap-0.5 text-ink-500"
+        >
+          <CommentIcon className="h-3 w-3" />
+          <span className="text-[10px] leading-none tabular-nums">{commentCount}</span>
+        </span>
+      )}
     </button>
   );
 }

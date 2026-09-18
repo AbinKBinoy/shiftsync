@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 // GET /api/shifts?department_id=&start_date=&end_date=&user_id=
 export async function GET(request: NextRequest) {
@@ -56,11 +57,35 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // One extra query for every comment row on this page of shifts, tallied
+  // here, rather than one comments query per shift (N+1). Comments has no
+  // count-by-target aggregate via the client, so the grouping happens in JS
+  // over a single flat list of target_ids.
+  const shiftIds = (shifts ?? []).map((s) => s.id);
+  const commentCounts = new Map<string, number>();
+
+  if (shiftIds.length > 0) {
+    const admin = createAdminClient();
+    const { data: commentRows } = await admin
+      .from('comments')
+      .select('target_id')
+      .eq('target_type', 'shift')
+      .in('target_id', shiftIds);
+
+    for (const row of commentRows ?? []) {
+      commentCounts.set(row.target_id, (commentCounts.get(row.target_id) ?? 0) + 1);
+    }
+  }
+
   // Supabase embeds the join under the table name; the Shift type calls it
   // `profile`.
   const normalized = (shifts ?? []).map((row) => {
     const { profiles, ...shift } = row as typeof row & { profiles?: unknown };
-    return { ...shift, profile: profiles ?? undefined };
+    return {
+      ...shift,
+      profile: profiles ?? undefined,
+      comment_count: commentCounts.get(shift.id) ?? 0,
+    };
   });
 
   return NextResponse.json({ shifts: normalized });
