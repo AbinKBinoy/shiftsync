@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { SVGProps } from 'react';
 import { useRouter } from 'next/navigation';
 import { exitAnimationDelay, MOTION_MS } from '@/lib/motion';
+import { formatRelativeTime } from '@/lib/dates';
 import type { Notification, NotificationType } from '@/types';
 
 const POLL_INTERVAL_MS = 45_000;
@@ -37,22 +38,6 @@ function hrefFor(type: NotificationType): string {
     default:
       return '/calendar';
   }
-}
-
-// notifications.created_at is a full timestamp, unlike shifts.date — same
-// reason ShiftClaimApprovals.tsx keeps its own local time formatter instead
-// of using lib/dates.ts's plain-date formatters.
-function formatRelativeTime(iso: string): string {
-  const diffSec = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
-
-  if (diffSec < 60) return 'just now';
-  const diffMin = Math.floor(diffSec / 60);
-  if (diffMin < 60) return `${diffMin}m ago`;
-  const diffHour = Math.floor(diffMin / 60);
-  if (diffHour < 24) return `${diffHour}h ago`;
-  const diffDay = Math.floor(diffHour / 24);
-  if (diffDay < 7) return `${diffDay}d ago`;
-  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 export default function NotificationBell({

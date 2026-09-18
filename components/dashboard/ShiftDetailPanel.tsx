@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useDashboard } from './DashboardData';
+import CommentThread from './CommentThread';
 import { formatFullDate, formatTime } from '@/lib/dates';
 import { exitAnimationDelay, MOTION_MS } from '@/lib/motion';
 import type { Shift, ShiftStatus } from '@/types';
@@ -418,6 +419,29 @@ export default function ShiftDetailPanel({
             </button>
           )}
         </div>
+
+        {/* Two separate threads rather than one merged feed: the shift's
+            conversation and a given swap's negotiation have different
+            interested parties (the shift's linked member vs. the swap's
+            requester/responder), and a shift can outlive several swaps over
+            time — keeping each swap's comments scoped to that swap avoids
+            mixing an old, resolved negotiation in with the shift's general
+            conversation or a newer swap's. */}
+        <div className="mt-8 border-t border-navy-800 pt-6">
+          <h3 className="text-sm font-medium text-ink-300">Comments</h3>
+          <div className="mt-4">
+            <CommentThread targetType="shift" targetId={shift.id} />
+          </div>
+        </div>
+
+        {swap && (
+          <div className="mt-8 border-t border-navy-800 pt-6">
+            <h3 className="text-sm font-medium text-ink-300">Swap comments</h3>
+            <div className="mt-4">
+              <CommentThread targetType="swap_request" targetId={swap.id} />
+            </div>
+          </div>
+        )}
       </aside>
     </div>
   );

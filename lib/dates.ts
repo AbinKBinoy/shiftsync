@@ -86,3 +86,19 @@ export function formatTime(value: string): string {
 export function isSameDay(a: Date, b: Date): boolean {
   return toISODate(a) === toISODate(b);
 }
+
+// Operates on a full ISO timestamp (unlike the plain 'YYYY-MM-DD' dates
+// everything above assumes) — shared by anything showing "how long ago"
+// rather than a calendar date: notifications, comments.
+export function formatRelativeTime(iso: string): string {
+  const diffSec = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+
+  if (diffSec < 60) return 'just now';
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHour = Math.floor(diffMin / 60);
+  if (diffHour < 24) return `${diffHour}h ago`;
+  const diffDay = Math.floor(diffHour / 24);
+  if (diffDay < 7) return `${diffDay}d ago`;
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
