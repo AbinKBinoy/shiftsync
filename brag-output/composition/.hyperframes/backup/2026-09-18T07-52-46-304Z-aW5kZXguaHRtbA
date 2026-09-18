@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080">
+    <title>ShiftSync — Real App Brag</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #0b1220;
+      }
+      :root {
+        --navy-950: #0b1220;
+        --navy-900: #111a2e;
+        --navy-700: #22314d;
+        --ink-100: #f5f7fa;
+        --ink-500: #8b96ac;
+        --yellow-400: #ffd100;
+        --font-display: "Outfit", sans-serif;
+        --font-mono: "JetBrains Mono", monospace;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: var(--navy-950);
+        font-family: var(--font-display);
+        color: var(--ink-100);
+      }
+      .clip {
+        width: 100%;
+        height: 100%;
+      }
+      #bg-field {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        background: var(--navy-950);
+      }
+
+      .scene {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        height: 100%;
+      }
+      .scene-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+
+      .eyebrow {
+        position: absolute;
+        top: 64px;
+        left: 96px;
+        font-family: var(--font-mono);
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--yellow-400);
+      }
+      .caption {
+        position: absolute;
+        left: 96px;
+        bottom: 66px;
+        font-size: 34px;
+        font-weight: 500;
+        color: var(--ink-100);
+        letter-spacing: -0.01em;
+      }
+
+      .frame {
+        position: absolute;
+        left: 50%;
+        top: 152px;
+        width: 1500px;
+        height: 758px;
+        margin-left: -750px;
+        border-radius: 18px;
+        overflow: hidden;
+        background: var(--navy-900);
+        border: 1px solid rgba(139, 150, 172, 0.28);
+        box-shadow: 0 60px 120px rgba(0, 0, 0, 0.55);
+      }
+      .frame-bar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 34px;
+        background: rgba(17, 26, 46, 0.92);
+        border-bottom: 1px solid rgba(139, 150, 172, 0.18);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 16px;
+        z-index: 2;
+      }
+      .frame-bar span {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: rgba(139, 150, 172, 0.45);
+      }
+      .frame-body {
+        position: absolute;
+        top: 34px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        overflow: hidden;
+      }
+      .frame-body img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 110%;
+        height: 110%;
+        object-fit: cover;
+        display: block;
+      }
+
+      #panel-frame {
+        width: 1000px;
+        height: 725px;
+        margin-left: -500px;
+        top: 178px;
+      }
+
+      .click-ring {
+        position: absolute;
+        width: 46px;
+        height: 46px;
+        margin: -23px 0 0 -23px;
+        border-radius: 50%;
+        border: 3px solid var(--yellow-400);
+        opacity: 0;
+        z-index: 3;
+        pointer-events: none;
+      }
+      .click-dot {
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        margin: -7px 0 0 -7px;
+        border-radius: 50%;
+        background: var(--yellow-400);
+        opacity: 0;
+        z-index: 3;
+        pointer-events: none;
+      }
+
+      .outro-inner {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 26px;
+      }
+      .wordmark {
+        font-weight: 900;
+        font-size: 128px;
+        letter-spacing: -0.03em;
+        color: var(--ink-100);
+      }
+      .wordmark .sync {
+        color: var(--yellow-400);
+      }
+      .outro-sub {
+        font-size: 34px;
+        color: var(--ink-500);
+      }
+    </style>
+  </head>
+  <body>
+    <div data-hf-id="hf-u4nq" id="root" data-composition-id="shiftsync-real-brag" data-start="0" data-width="1920" data-height="1080" data-duration="28">
+      <div data-hf-id="hf-534j" id="bg-field"></div>
+
+      <audio data-hf-id="hf-xhkf" id="bgm" src="assets/music/happy-beats-business-moves-vol-12-by-ende-dot-app.mp3" data-start="0" data-duration="28" data-track-index="10"></audio>
+      <audio data-hf-id="hf-d8n8" id="sfx-drop" src="assets/sfx/interface/click_003.ogg" data-start="1.9" data-track-index="11" data-volume="0.7"></audio>
+      <audio data-hf-id="hf-62di" id="sfx-hero" src="assets/sfx/impact/impactBell_heavy_000.ogg" data-start="8.74" data-track-index="12" data-volume="0.85"></audio>
+      <audio data-hf-id="hf-82dv" id="sfx-panel" src="assets/sfx/interface/click_003.ogg" data-start="15.2" data-track-index="13" data-volume="0.65"></audio>
+      <audio data-hf-id="hf-2yo6" id="sfx-bell" src="assets/sfx/interface/click_003.ogg" data-start="19.1" data-track-index="14" data-volume="0.65"></audio>
+      <audio data-hf-id="hf-kjyz" id="sfx-outro" src="assets/sfx/impact/impactBell_heavy_003.ogg" data-start="25.05" data-track-index="15" data-volume="0.8"></audio>
+
+      <!-- Scene 1: Upload — 0 to 4s -->
+      <section data-hf-id="hf-2t53" id="scene-upload" class="clip scene" data-start="0" data-duration="4" data-track-index="1">
+        <div data-hf-id="hf-mpod" class="scene-inner" id="upload-inner">
+          <div data-hf-id="hf-gauh" class="eyebrow" id="upload-eyebrow">SHIFTSYNC / UPLOAD</div>
+          <div data-hf-id="hf-dspy" class="frame" id="upload-frame">
+            <div data-hf-id="hf-u7fj" class="frame-bar"><span data-hf-id="hf-uckh"></span><span data-hf-id="hf-l73p"></span><span data-hf-id="hf-me0s"></span></div>
+            <div data-hf-id="hf-346h" class="frame-body" data-layout-allow-overflow="true">
+              <img data-hf-id="hf-xm8h" id="upload-empty-img" src="assets/screens/01-upload-empty.jpg" alt="">
+              <img data-hf-id="hf-c7st" id="upload-dropped-img" src="assets/screens/02-upload-dropped.jpg" alt="" style="opacity: 0">
+            </div>
+            <div data-hf-id="hf-npzv" class="click-ring" id="upload-ring" style="left: 51%; top: 52%"></div>
+            <div data-hf-id="hf-7xrz" class="click-dot" id="upload-dot" style="left: 51%; top: 52%"></div>
+          </div>
+          <div data-hf-id="hf-x8vq" class="caption" id="upload-caption">Drag in the posted schedule.</div>
+        </div>
+      </section>
+
+      <!-- Scene 2: Extract — 4 to 11s -->
+      <section data-hf-id="hf-usqj" id="scene-extract" class="clip scene" data-start="4" data-duration="7" data-track-index="2">
+        <div data-hf-id="hf-xig7" class="scene-inner" id="extract-inner">
+          <div data-hf-id="hf-he17" class="eyebrow" id="extract-eyebrow">SHIFTSYNC / EXTRACT</div>
+          <div data-hf-id="hf-zpng" class="frame" id="extract-frame">
+            <div data-hf-id="hf-6mcf" class="frame-bar"><span data-hf-id="hf-lzpr"></span><span data-hf-id="hf-n6mu"></span><span data-hf-id="hf-msbt"></span></div>
+            <div data-hf-id="hf-s1r1" class="frame-body" data-layout-allow-overflow="true">
+              <img data-hf-id="hf-7os7" id="extracting-img" src="assets/screens/03-extracting.jpg" alt="">
+              <img data-hf-id="hf-hy06" id="extracted-img" src="assets/screens/04-extracted-table.jpg" alt="" style="opacity: 0">
+            </div>
+          </div>
+          <div data-hf-id="hf-wfk2" class="caption" id="extract-caption">Claude Vision AI reads every shift.</div>
+        </div>
+      </section>
+
+      <!-- Scene 3: Calendar — 11 to 15s -->
+      <section data-hf-id="hf-j4aq" id="scene-calendar" class="clip scene" data-start="11" data-duration="4" data-track-index="3">
+        <div data-hf-id="hf-bya0" class="scene-inner" id="calendar-inner">
+          <div data-hf-id="hf-6af3" class="eyebrow" id="calendar-eyebrow">SHIFTSYNC / CALENDAR</div>
+          <div data-hf-id="hf-y0n7" class="frame" id="calendar-frame">
+            <div data-hf-id="hf-681e" class="frame-bar"><span data-hf-id="hf-nz8w"></span><span data-hf-id="hf-nkxv"></span><span data-hf-id="hf-ieyi"></span></div>
+            <div data-hf-id="hf-t8o4" class="frame-body" data-layout-allow-overflow="true">
+              <img data-hf-id="hf-g6bn" id="calendar-img" src="assets/screens/05-calendar.jpg" alt="">
+            </div>
+          </div>
+          <div data-hf-id="hf-xhcu" class="caption" id="calendar-caption">Real shifts, on the real calendar.</div>
+        </div>
+      </section>
+
+      <!-- Scene 4: Shift panel — 15 to 19s -->
+      <section data-hf-id="hf-pfpj" id="scene-panel" class="clip scene" data-start="15" data-duration="4" data-track-index="4">
+        <div data-hf-id="hf-zbbu" class="scene-inner" id="panel-inner">
+          <div data-hf-id="hf-6r4n" class="eyebrow" id="panel-eyebrow">SHIFTSYNC / SHIFT DETAILS</div>
+          <div data-hf-id="hf-zsjt" class="frame" id="panel-frame">
+            <div data-hf-id="hf-5tqd" class="frame-bar"><span data-hf-id="hf-i0nh"></span><span data-hf-id="hf-1qzj"></span><span data-hf-id="hf-25ak"></span></div>
+            <div data-hf-id="hf-sud3" class="frame-body" data-layout-allow-overflow="true">
+              <img data-hf-id="hf-rkx2" id="panel-calendar-img" src="assets/screens/05-calendar.jpg" alt="">
+              <img data-hf-id="hf-iwwt" id="panel-open-img" src="assets/screens/06-shift-panel-crop.jpg" alt="" style="opacity: 0">
+            </div>
+            <div data-hf-id="hf-dzvs" class="click-ring" id="panel-ring" style="left: 52%; top: 66%"></div>
+            <div data-hf-id="hf-gyng" class="click-dot" id="panel-dot" style="left: 52%; top: 66%"></div>
+          </div>
+          <div data-hf-id="hf-6rza" class="caption" id="panel-caption">Drop, trade, or claim — one tap.</div>
+        </div>
+      </section>
+
+      <!-- Scene 5: Notifications — 19 to 22s -->
+      <section data-hf-id="hf-cfr3" id="scene-notif" class="clip scene" data-start="19" data-duration="3" data-track-index="5">
+        <div data-hf-id="hf-79qa" class="scene-inner" id="notif-inner">
+          <div data-hf-id="hf-cj29" class="eyebrow" id="notif-eyebrow">SHIFTSYNC / NOTIFICATIONS</div>
+          <div data-hf-id="hf-r7op" class="frame" id="notif-frame">
+            <div data-hf-id="hf-8lvk" class="frame-bar"><span data-hf-id="hf-0ydh"></span><span data-hf-id="hf-1coi"></span><span data-hf-id="hf-3c7n"></span></div>
+            <div data-hf-id="hf-u1a6" class="frame-body" data-layout-allow-overflow="true">
+              <img data-hf-id="hf-os29" id="notif-img" src="assets/screens/07-notifications-crop.jpg" alt="">
+            </div>
+            <div data-hf-id="hf-sggq" class="click-ring" id="notif-ring" style="left: 3%; top: 8%"></div>
+            <div data-hf-id="hf-fvaq" class="click-dot" id="notif-dot" style="left: 3%; top: 8%"></div>
+          </div>
+          <div data-hf-id="hf-1t6p" class="caption" id="notif-caption">Stay in the loop, automatically.</div>
+        </div>
+      </section>
+
+      <!-- Scene 6: Sync — 22 to 25s -->
+      <section data-hf-id="hf-8gd7" id="scene-sync" class="clip scene" data-start="22" data-duration="3" data-track-index="6">
+        <div data-hf-id="hf-flob" class="scene-inner" id="sync-inner">
+          <div data-hf-id="hf-aaz5" class="eyebrow" id="sync-eyebrow">SHIFTSYNC / SYNC</div>
+          <div data-hf-id="hf-4rp4" class="frame" id="sync-frame">
+            <div data-hf-id="hf-87kj" class="frame-bar"><span data-hf-id="hf-3qio"></span><span data-hf-id="hf-2jll"></span><span data-hf-id="hf-2xwm"></span></div>
+            <div data-hf-id="hf-tmz5" class="frame-body" data-layout-allow-overflow="true">
+              <img data-hf-id="hf-p0ng" id="sync-img" src="assets/screens/08-sync-page.jpg" alt="">
+            </div>
+          </div>
+          <div data-hf-id="hf-0kip" class="caption" id="sync-caption">Synced to your calendar automatically.</div>
+        </div>
+      </section>
+
+      <!-- Scene 7: Outro — 25 to 28s -->
+      <section data-hf-id="hf-vwyv" id="scene-outro" class="clip scene" data-start="25" data-duration="3" data-track-index="7">
+        <div data-hf-id="hf-qr3m" class="outro-inner" id="outro-inner">
+          <div data-hf-id="hf-bxma" class="wordmark" id="wordmark">Shift<span data-hf-id="hf-krbv" class="sync">Sync</span></div>
+          <div data-hf-id="hf-pk5a" class="outro-sub" id="outro-sub">Live at shiftsync.win</div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      gsap.set("#upload-empty-img", { x: -113, y: -44 });
+      const tl = gsap.timeline({ paused: true, defaults: { duration: 0.5, ease: "power3.out" } });
+
+      // ---------- audio ----------
+      tl.fromTo("#bgm", { volume: 0 }, { volume: 0.3, duration: 1.0, ease: "sine.out" }, 0);
+      tl.to("#bgm", { volume: 0, duration: 1.0, ease: "sine.in" }, 27.0);
+
+      // =====================================================
+      // Scene 1 — Upload (0 – 4s)
+      // =====================================================
+      tl.fromTo("#upload-eyebrow", { opacity: 0, y: -12 }, { opacity: 1, y: 0, duration: 0.35 }, 0.05);
+      tl.fromTo(
+        "#upload-frame",
+        { opacity: 0, y: 26, scale: 0.97 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.55 },
+        0.15,
+      );
+      tl.fromTo("#upload-caption", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.4 }, 0.45);
+      // simulated drag: click ring/dot pulse over the drop zone right before the drop lands
+      tl.fromTo(
+        "#upload-ring",
+        { opacity: 0.9, scale: 0.5 },
+        { opacity: 0, scale: 2.2, duration: 0.55, ease: "power2.out" },
+        1.55,
+      );
+      tl.fromTo(
+        "#upload-dot",
+        { opacity: 0, scale: 0.6 },
+        { opacity: 1, scale: 1, duration: 0.2 },
+        1.55,
+      );
+      tl.to("#upload-dot", { opacity: 0, duration: 0.25 }, 1.85);
+      tl.to("#upload-empty-img", { opacity: 0, duration: 0.35, ease: "power2.inOut" }, 1.9);
+      tl.fromTo(
+        "#upload-dropped-img",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.35, ease: "power2.inOut" },
+        1.9,
+      );
+      tl.to("#upload-dropped-img", { scale: 1.04, duration: 2.1, ease: "sine.out" }, 1.9);
+      tl.to("#upload-inner", { opacity: 0, duration: 0.25, ease: "power2.in" }, 3.7);
+
+      // =====================================================
+      // Scene 2 — Extract (4 – 11s) — the hero beat
+      // =====================================================
+      tl.fromTo("#extract-eyebrow", { opacity: 0, y: -12 }, { opacity: 1, y: 0, duration: 0.35 }, 4.05);
+      tl.fromTo(
+        "#extract-frame",
+        { opacity: 0, y: 26, scale: 0.97 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.55 },
+        4.15,
+      );
+      tl.fromTo("#extract-caption", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.4 }, 4.45);
+      // slow anticipatory zoom on the loading state
+      tl.fromTo("#extracting-img", { scale: 1 }, { scale: 1.06, duration: 4.2, ease: "sine.inOut" }, 4.5);
+      // beat-locked: 8.74s (strong_beat 0.99) — the reveal
+      tl.to("#extracting-img", { opacity: 0, duration: 0.3, ease: "power2.inOut" }, 8.74);
+      tl.fromTo(
+        "#extracted-img",
+        { opacity: 0, scale: 1.1 },
+        { opacity: 1, scale: 1.0, duration: 0.5, ease: "power3.out" },
+        8.74,
+      );
+      tl.to("#extract-frame", { scale: 1.015, duration: 0.22, ease: "power2.out", yoyo: true, repeat: 1 }, 8.74);
+      tl.to("#extracted-img", { scale: 1.05, duration: 2.0, ease: "sine.out" }, 9.3);
+      tl.to("#extract-inner", { opacity: 0, duration: 0.25, ease: "power2.in" }, 10.7);
+
+      // =====================================================
+      // Scene 3 — Calendar (11 – 15s)
+      // =====================================================
+      tl.fromTo("#calendar-eyebrow", { opacity: 0, y: -12 }, { opacity: 1, y: 0, duration: 0.35 }, 11.05);
+      tl.fromTo(
+        "#calendar-frame",
+        { opacity: 0, y: 26, scale: 0.97 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.55 },
+        11.15,
+      );
+      tl.fromTo("#calendar-caption", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.4 }, 11.45);
+      tl.fromTo(
+        "#calendar-img",
+        { scale: 1.02, x: 0, y: 0 },
+        { scale: 1.09, x: -30, y: 0, duration: 3.4, ease: "sine.inOut" },
+        11.4,
+      );
+      tl.to("#calendar-inner", { opacity: 0, duration: 0.25, ease: "power2.in" }, 14.7);
+
+      // =====================================================
+      // Scene 4 — Shift panel (15 – 19s)
+      // =====================================================
+      tl.fromTo("#panel-eyebrow", { opacity: 0, y: -12 }, { opacity: 1, y: 0, duration: 0.35 }, 15.05);
+      tl.fromTo(
+        "#panel-frame",
+        { opacity: 0, y: 26, scale: 0.97 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.55 },
+        15.15,
+      );
+      tl.fromTo("#panel-caption", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.4 }, 15.45);
+      tl.fromTo(
+        "#panel-ring",
+        { opacity: 0.9, scale: 0.5 },
+        { opacity: 0, scale: 2.2, duration: 0.5, ease: "power2.out" },
+        15.75,
+      );
+      tl.fromTo("#panel-dot", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.18 }, 15.75);
+      tl.to("#panel-dot", { opacity: 0, duration: 0.22 }, 16.0);
+      // beat-locked: 17.47s / 18.56s window — panel slides into view
+      tl.to("#panel-calendar-img", { opacity: 0, duration: 0.3, ease: "power2.inOut" }, 16.05);
+      tl.fromTo(
+        "#panel-open-img",
+        { opacity: 0, x: 30, scale: 1.03 },
+        { opacity: 1, x: 0, scale: 1.03, duration: 0.5, ease: "power3.out" },
+        16.05,
+      );
+      tl.to("#panel-open-img", { scale: 1.1, duration: 2.6, ease: "sine.inOut" }, 16.6);
+      tl.to("#panel-inner", { opacity: 0, duration: 0.25, ease: "power2.in" }, 18.7);
+
+      // =====================================================
+      // Scene 5 — Notifications (19 – 22s)
+      // =====================================================
+      tl.fromTo("#notif-eyebrow", { opacity: 0, y: -12 }, { opacity: 1, y: 0, duration: 0.35 }, 19.05);
+      tl.fromTo(
+        "#notif-frame",
+        { opacity: 0, y: 26, scale: 0.97 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.5 },
+        19.15,
+      );
+      tl.fromTo("#notif-caption", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.4 }, 19.4);
+      tl.fromTo(
+        "#notif-ring",
+        { opacity: 0.9, scale: 0.5 },
+        { opacity: 0, scale: 2.0, duration: 0.45, ease: "power2.out" },
+        19.6,
+      );
+      tl.fromTo("#notif-dot", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.16 }, 19.6);
+      tl.to("#notif-dot", { opacity: 0, duration: 0.2 }, 19.82);
+      tl.fromTo(
+        "#notif-img",
+        { scale: 1.02, x: 0, y: 0 },
+        { scale: 1.2, x: -20, y: -90, duration: 2.2, ease: "power2.inOut" },
+        19.9,
+      );
+      tl.to("#notif-inner", { opacity: 0, duration: 0.25, ease: "power2.in" }, 21.7);
+
+      // =====================================================
+      // Scene 6 — Sync (22 – 25s)
+      // =====================================================
+      tl.fromTo("#sync-eyebrow", { opacity: 0, y: -12 }, { opacity: 1, y: 0, duration: 0.35 }, 22.05);
+      tl.fromTo(
+        "#sync-frame",
+        { opacity: 0, y: 26, scale: 0.97 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.5 },
+        22.15,
+      );
+      tl.fromTo("#sync-caption", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.4 }, 22.4);
+      // beat-locked: 22.93s (strong_beat 1.00)
+      tl.fromTo(
+        "#sync-img",
+        { scale: 1.05, x: -20, y: -40 },
+        { scale: 1.18, x: -110, y: -140, duration: 2.4, ease: "power2.inOut" },
+        22.45,
+      );
+      tl.to("#sync-inner", { opacity: 0, duration: 0.25, ease: "power2.in" }, 24.7);
+
+      // =====================================================
+      // Scene 7 — Outro (25 – 28s)
+      // =====================================================
+      tl.fromTo(
+        "#wordmark",
+        { opacity: 0, y: 24, scale: 0.94 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "power3.out" },
+        25.05,
+      );
+      tl.fromTo("#outro-sub", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4 }, 25.4);
+
+      tl.to("#upload-empty-img", { keyframes: { "0%": { width: 1548, height: 747 }, "100%": { width: 1321, height: 637 } }, duration: 0.35 }, 1.9);
+
+      window.__timelines["shiftsync-real-brag"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

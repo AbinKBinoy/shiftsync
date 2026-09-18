@@ -1,0 +1,2 @@
+ShiftSync: snap a photo of the schedule posted at work, and Claude Vision AI turns it into a shared calendar your whole team can swap shifts on — drop, trade, or claim in one tap, synced automatically.
+Every screen in this video is the real, running app. Built solo with Next.js, Supabase, and Claude Vision AI. Live at shiftsync.win.
