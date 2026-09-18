@@ -1,21 +1,26 @@
 <div align="center">
 
-# ShiftSync
+<img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:0B1220,100:1a2942&height=180&section=header&text=ShiftSync&fontSize=60&fontColor=FFD100&animation=fadeIn&fontAlignY=40&desc=Turn%20a%20photo%20of%20a%20schedule%20into%20a%20calendar%20your%20team%20can%20use&descAlignY=62&descSize=16&descColor=E6E8EE" alt="ShiftSync banner"/>
 
-**Turn a photo of a posted work schedule into a shared, tappable calendar your whole team can use.**
+<br>
 
-Snap a photo → AI reads every shift → your team joins with a code → drop, trade, or claim a shift in one tap.
+[![Live Site](https://img.shields.io/badge/Live-shiftsync.win-FFD100?style=for-the-badge&logo=vercel&logoColor=0B1220)](https://shiftsync.win)
+[![License](https://img.shields.io/badge/License-MIT-0B1220?style=for-the-badge)](#license)
 
-[**Try it live → shiftsync.win**](https://shiftsync.win)
+<br>
+
+<a href="https://shiftsync.win">
+<img src="https://readme-typing-svg.demolab.com/?font=Inter&size=22&duration=2800&pause=1200&color=FFD100&center=true&vCenter=true&width=680&lines=Snap+a+photo+of+the+schedule.;AI+reads+every+shift+automatically.;Your+team+joins+with+one+code.;Drop%2C+trade%2C+or+claim+a+shift+in+one+tap." alt="Typing SVG" />
+</a>
 
 </div>
 
 <br>
 
 <!--
-  To embed the launch video: open this file in GitHub's web editor and drag
-  brag-output/brag.mp4 directly into the editor. GitHub will upload it and
-  generate a playable video link automatically — paste that link here,
+  VIDEO: open this file in GitHub's web editor and drag
+  brag-output/brag.mp4 directly into the editor. GitHub uploads it and
+  generates a playable video link automatically — paste that link here,
   replacing this comment.
 -->
 
@@ -31,18 +36,50 @@ Snap a photo → AI reads every shift → your team joins with a code → drop, 
 
 Every shift-based workplace has the same problem: schedules get posted as a photo on a wall or a printout in a binder, and from there it's a mess of screenshots, group chats, and "hey can you take my Tuesday shift" texts that get lost in the noise.
 
-ShiftSync fixes that. A team lead photographs the posted schedule, Claude's Vision API reads every name, date, and shift time off the image automatically, and the whole team gets a real, interactive calendar. From there, dropping a shift, trading with a teammate, or claiming an open one is one tap; no more guessing who's covering what.
+ShiftSync fixes that. A team lead photographs the posted schedule, Claude's Vision API reads every name, date, and shift time off the image automatically, and the whole team gets a real, interactive calendar. From there, dropping a shift, trading with a teammate, or claiming an open one is one tap, no more guessing who's covering what.
 
 This isn't a demo or a mockup. It's a real, deployed product, built solo, currently running for a real retail team.
 
 <br>
 
+<div align="center">
+
 ## How it works
 
-1. **Upload a photo** of the schedule posted at work, a whiteboard, a printout, a spreadsheet on a monitor, any of it works.
-2. **AI reads every shift.** Claude Vision extracts each name, date, and time automatically, no manual retyping of a schedule that already exists.
-3. **Your team joins in.** Teammates join with a single invite code and instantly see the shifts that belong to them on a shared calendar.
-4. **Drop, trade, or claim.** Need coverage? Post the shift, trade with a teammate, or claim an open one, all tracked in one place, no group chat required.
+</div>
+
+<table>
+<tr>
+<td width="25%" align="center">
+
+**1. Upload**
+
+Snap a photo of the schedule posted at work. Whiteboard, printout, spreadsheet on a monitor, any of it works.
+
+</td>
+<td width="25%" align="center">
+
+**2. Extract**
+
+Claude Vision reads every name, date, and time off the photo automatically. No manual retyping.
+
+</td>
+<td width="25%" align="center">
+
+**3. Join**
+
+Teammates join with one invite code and instantly see their shifts on a shared calendar.
+
+</td>
+<td width="25%" align="center">
+
+**4. Swap**
+
+Drop, trade, or claim a shift in one tap. No group chat required.
+
+</td>
+</tr>
+</table>
 
 <br>
 
@@ -51,8 +88,8 @@ This isn't a demo or a mockup. It's a real, deployed product, built solo, curren
 - **AI schedule extraction** — Claude Vision reads a photo of a posted schedule and turns it into structured shift data in seconds.
 - **Shared team calendar** — a real weekly calendar (Sunday–Saturday, 12-hour time), color-coded by shift status, with a mobile view built for one-handed use on the floor.
 - **Full swap system** — drop a shift, propose a trade, or claim an open one. Optional team-lead approval before a swap takes effect.
-- **Self-serve identity linking** — a member finds their name on the calendar and requests to be linked to it; the team lead confirms with one tap. No more guessing who "M. Kim" or "J. Smith" actually is.
-- **Calendar sync** — subscribe once via Google Calendar, Apple Calendar, or Outlook, and every new shift appears automatically. No manual re-exporting.
+- **Self-serve identity linking** — a member finds their name on the calendar and requests to be linked to it; the team lead confirms with one tap.
+- **Calendar sync** — subscribe once via Google Calendar, Apple Calendar, or Outlook, and every new shift appears automatically.
 - **Comments on shifts and swaps** — a real conversation thread on any shift or swap request, so context doesn't get lost.
 - **Notifications** — email and in-app notifications when a swap needs approval, a claim is made, or a teammate comments.
 - **Auth** — email/password and Google sign-in, with a proper password reset flow.
@@ -60,24 +97,13 @@ This isn't a demo or a mockup. It's a real, deployed product, built solo, curren
 
 <br>
 
-## Tech stack
+<div align="center">
 
-**Frontend / app**
-- Next.js 16 (App Router), TypeScript, Tailwind CSS v4
-- Supabase (Postgres, Auth, Row-Level Security, Storage)
-- Deployed on Vercel
+## Built with
 
-**AI extraction service**
-- Python, FastAPI
-- Claude Vision API (Anthropic) for reading schedule photos
-- Deployed separately on Railway
+<img src="https://skillicons.dev/icons?i=nextjs,ts,tailwind,supabase,postgres,python,fastapi,vercel&theme=dark" />
 
-**Email**
-- Resend (transactional email, custom domain)
-
-**Infrastructure**
-- Custom domain via Cloudflare
-- Supabase Row-Level Security enforced on every table, no data crosses department boundaries
+</div>
 
 <br>
 
@@ -103,7 +129,7 @@ The AI extraction logic lives in its own FastAPI service instead of inside the N
 └─────────────────┘
 ```
 
-A schedule photo is uploaded from the browser to the Next.js app, which stores it in Supabase Storage and forwards it to the Python service. The Python service calls Claude's Vision API, parses the response into structured shift data, and returns it. The team lead reviews and publishes it, at which point it becomes real rows in the `shifts` table, visible to the whole department, governed by RLS so no one outside the department can ever see it.
+A schedule photo is uploaded from the browser to the Next.js app, which stores it in Supabase Storage and forwards it to the Python service. The Python service calls Claude's Vision API, parses the response into structured shift data, and returns it. The team lead reviews and publishes it, at which point it becomes real rows in the `shifts` table, visible to the whole department, governed by Row-Level Security so no one outside the department can ever see it.
 
 <br>
 
@@ -112,7 +138,7 @@ A schedule photo is uploaded from the browser to the Next.js app, which stores i
 ### Prerequisites
 - Node.js 22+
 - A Supabase project
-- A deployed (or local) instance of the [extraction service](#) with a valid Anthropic API key
+- A deployed (or local) instance of the extraction service with a valid Anthropic API key
 - A Resend account (for email) — optional for local dev
 
 ### Setup
@@ -142,9 +168,13 @@ npm run dev
 
 <br>
 
+<div align="center">
+
 ## Screenshots
 
 <!-- Add screenshots here: calendar view, upload flow, shift detail panel, landing page -->
+
+</div>
 
 <br>
 
@@ -156,14 +186,18 @@ npm run dev
 
 <br>
 
+<div align="center">
+
 ## Author
 
-Built by **Abin Kuzhuvelikalam Binoy** — [github.com/AbinKBinoy](https://github.com/AbinKBinoy)
+**Abin Kuzhuvelikalam Binoy**
+
+[![GitHub](https://img.shields.io/badge/GitHub-AbinKBinoy-0B1220?style=for-the-badge&logo=github)](https://github.com/AbinKBinoy)
 
 First-year Software Engineering student at the University of Victoria. Built this after getting tired of texting coworkers about shift swaps at Best Buy.
 
 <br>
 
-## License
+<img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:1a2942,100:0B1220&height=100&section=footer" alt="footer"/>
 
-MIT
+</div>
